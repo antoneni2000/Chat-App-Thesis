@@ -1,0 +1,46 @@
+package com.chatapp.config;
+
+import com.chatapp.security.WebSocketAuthInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+/**
+ * Config WebSocket + STOMP.
+ *
+ *  - Endpoint-ul de handshake: /ws (clientul se conectează aici cu SockJS)
+ *  - Destinatii server -> client (subscribe): /topic/...
+ *  - Destinatii client -> server (send): /app/...
+ */
+@Configuration
+@EnableWebSocketMessageBroker
+@RequiredArgsConstructor
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final WebSocketAuthInterceptor authInterceptor;
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        // broker simplu, in-memory
+        config.enableSimpleBroker("/topic", "/queue");
+        config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")  // accept dev origins
+                .withSockJS();                  // fallback daca browserul nu suporta WS direct
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        // Interceptorul care citește JWT din frame-ul CONNECT
+        registration.interceptors(authInterceptor);
+    }
+}
