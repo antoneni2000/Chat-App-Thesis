@@ -15,9 +15,8 @@ import org.springframework.stereotype.Controller;
 import java.security.Principal;
 
 /**
- * Controller pentru WebSocket/STOMP.
- * Toate mesajele primite pe "/app/chat.send" sunt salvate în DB si apoi
- * trimise tuturor abonatilor la "/topic/chat/{chatId}".
+ * WebSocket/STOMP controller.
+ * Primeste mesajele si broadcast-eaza pe /topic/chat/{id}.
  */
 @Controller
 @RequiredArgsConstructor
@@ -34,14 +33,12 @@ public class ChatWebSocketController {
             log.warn("WebSocket message without authenticated user");
             return;
         }
-
-        // principal.getName() = email-ul setat in WebSocketAuthInterceptor (la CONNECT)
         User sender = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new IllegalStateException("Sender not found"));
-
-        MessageDto saved = chatService.sendMessage(sender, dto.chatId(), dto.content());
-
-        // Broadcast la toti din acest chat
+        MessageDto saved = chatService.sendMessage(
+                sender, dto.chatId(), dto.content(),
+                dto.attachmentUrl(), dto.attachmentName(), dto.attachmentType());
+        // broadcast mesajul la cei care vad chatul deschis
         messagingTemplate.convertAndSend("/topic/chat/" + dto.chatId(), saved);
     }
 }

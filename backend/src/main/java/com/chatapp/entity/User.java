@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * A user of the chat app.
+ * User al aplicatiei.
  * Tabel: users
  */
 @Entity
@@ -31,6 +31,18 @@ public class User {
 
     @Column(name = "display_name", length = 100)
     private String displayName;
+
+    // avatar stocat ca data URL base64 (e.g. "data:image/png;base64,...").
+    // TEXT in DB ca sa incapa imagini de zeci de KB
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    // pentru prezenta (nullable ca să nu pice updateul pe rândurile existente)
+    @Column
+    private Boolean online;
+
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

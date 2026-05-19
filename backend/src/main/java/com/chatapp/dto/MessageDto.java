@@ -4,9 +4,6 @@ import com.chatapp.entity.Message;
 
 import java.time.LocalDateTime;
 
-/**
- * Un mesaj trimis la frontend.
- */
 public record MessageDto(
     Long id,
     Long chatId,
@@ -14,6 +11,9 @@ public record MessageDto(
     String senderUsername,
     String senderDisplayName,
     String content,
+    String attachmentUrl,
+    String attachmentName,
+    String attachmentType,
     LocalDateTime createdAt
 ) {
     public static MessageDto from(Message m) {
@@ -24,6 +24,9 @@ public record MessageDto(
             m.getSender().getUsername(),
             m.getSender().getDisplayName(),
             m.getContent(),
+            m.getAttachmentUrl(),
+            m.getAttachmentName(),
+            m.getAttachmentType(),
             m.getCreatedAt()
         );
     }

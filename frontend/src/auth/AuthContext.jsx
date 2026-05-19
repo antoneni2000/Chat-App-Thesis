@@ -44,8 +44,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // actualizeaza datele user-ului local (de ex. dupa update profil)
+  const updateUser = (patch) => setUser((prev) => ({ ...prev, ...patch }));
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

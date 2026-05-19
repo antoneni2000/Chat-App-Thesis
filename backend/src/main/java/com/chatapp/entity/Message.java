@@ -6,14 +6,16 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * mesaj trimis in chat.
- * Tabel: messages
+ * mesaj trimis in chat
+ * - content = text
+ * - attachmentUrl = data URL base64 al fisierului atasat (poza/document)
+ * - attachmentName = numele original al fisierului
+ * - attachmentType = MIME type (image/png, application/pdf, etc.)
  */
 @Entity
 @Table(
     name = "messages",
     indexes = {
-        // index pe (chat_id, created_at) pentru incarcare rapida istoric
         @Index(name = "idx_messages_chat_created", columnList = "chat_id, created_at")
     }
 )
@@ -34,8 +36,17 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "attachment_url", columnDefinition = "TEXT")
+    private String attachmentUrl;
+
+    @Column(name = "attachment_name")
+    private String attachmentName;
+
+    @Column(name = "attachment_type")
+    private String attachmentType;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -27,7 +27,10 @@ export function connect(token) {
       Authorization: `Bearer ${token}`,
     },
     reconnectDelay: 5000,
-    debug: () => {}, // silentios; pentru debug pune console.log
+    // CRITICAL: marim frame-ul ca sa incapa atasamente base64 mari (poze/PDF-uri)
+    // Default e 16KB, ne trebuie 10MB.
+    maxWebSocketFrameSize: 10 * 1024 * 1024,
+    debug: (str) => console.log('[STOMP]', str), // log temporar ca sa vedem ce se intampla
   });
 
   connectedPromise = new Promise((resolve, reject) => {
@@ -64,7 +67,13 @@ export function publish(destination, body) {
     console.warn('Publish: client not connected');
     return;
   }
-  client.publish({ destination, body: JSON.stringify(body) });
+  const json = JSON.stringify(body);
+  console.log('[STOMP publish]', destination, `(${(json.length / 1024).toFixed(1)} KB)`);
+  try {
+    client.publish({ destination, body: json });
+  } catch (err) {
+    console.error('Publish failed:', err);
+  }
 }
 
 export function disconnect() {

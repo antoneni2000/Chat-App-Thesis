@@ -8,6 +8,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 /**
  * Config WebSocket + STOMP.
@@ -42,5 +43,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(ChannelRegistration registration) {
         // Interceptorul care citește JWT din frame-ul CONNECT
         registration.interceptors(authInterceptor);
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        // marim limitele ca sa incapa base64-uri mari (poze/documente)
+        registry.setMessageSizeLimit(10 * 1024 * 1024);      // 10 MB / mesaj
+        registry.setSendBufferSizeLimit(10 * 1024 * 1024);
+        registry.setSendTimeLimit(20_000);
     }
 }
