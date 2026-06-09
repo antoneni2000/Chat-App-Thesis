@@ -1,7 +1,5 @@
 # Aviel — Aplicație de chat în timp real
 
-Aplicație web de mesagerie în timp real: conversații 1-la-1 și de grup, atașamente, status de prezență (online/offline), confirmări de livrare/citire și căutare în mesaje. Backend pe Spring Boot, frontend pe React.
-
 ---
 
 ## 1. Tehnologii
@@ -49,19 +47,16 @@ Schema (tabelele) se generează automat la prima pornire a backend-ului — `spr
 
 ## 4. Configurare (variabile de mediu)
 
-> **Important — securitate.** Fișierul `application.properties` conține valori implicite pentru parolă, secret JWT și credențiale Google. Acestea sunt doar pentru dezvoltare locală. **Nu le folosi în producție și nu le urca pe un repo public.** Suprascrie-le prin variabile de mediu (toate cheile suportă deja sintaxa `${VAR:default}`).
-
 | Variabilă | Descriere | Valoare implicită |
 |---|---|---|
 | `DB_URL` | URL-ul bazei PostgreSQL | `jdbc:postgresql://localhost:5432/chatapp` |
 | `DB_USERNAME` | Utilizator DB | `postgres` |
-| `DB_PASSWORD` | Parolă DB | `1234` |
+| `DB_PASSWORD` | Parolă DB | `****` |
 | `JWT_SECRET` | Cheie de semnare a token-urilor JWT (string lung, secret) | *(setează-l tu)* |
 | `JWT_EXPIRATION_MS` | Durata de viață a token-ului (ms) | `86400000` (24h) |
 | `GOOGLE_CLIENT_ID` | OAuth Client ID din Google Cloud | *(setează-l tu)* |
 | `GCS_PROJECT_ID` | ID-ul proiectului Google Cloud | `chat-app-497015` |
 | `GCS_BUCKET` | Numele bucket-ului GCS | `chatapp-attachments-2026` |
-| `GCS_CREDENTIALS_PATH` | Calea către `gcs-credentials.json` | cale locală |
 | `CLEANUP_RETENTION_DAYS` | Câte zile se păstrează mesajele șterse | `30` |
 
 **Frontend** — în folderul `frontend`, fișierul `.env`:
