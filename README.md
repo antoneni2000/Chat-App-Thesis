@@ -124,7 +124,6 @@ npm run build
 npm run preview   # opțional, pentru a testa build-ul local
 ```
 
-Conținutul din `dist` se servește apoi prin orice server static (Nginx, Vercel, etc.).
 
 ---
 
