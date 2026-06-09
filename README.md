@@ -149,3 +149,71 @@ Chat App/
 └── docs/                    # Diagrame UML (arhitectură, clase, etc.)
 ```
 
+---
+
+## 8. Performanță
+
+Proiectul include în folderul `perf/` o suită completă de teste de performanță:
+- **PowerShell** (`setup.ps1`) — pregătește mediul (useri de test, tokeni, chat).
+- **k6** (`latency.js`, `rest.js`, `scalability.js`) — generează sarcina și măsoară.
+- **Python** (`analyze_rest.py`, `plot_results.py`, `plots_scalability.py`) — analizează NDJSON-urile k6 și produc graficele (PNG) în `perf/figures/`.
+
+### 8.1. Cerințe preliminare
+
+| Unealtă | Instalare (Windows) | Verificare |
+|---|---|---|
+| **k6** | `winget install k6 --source winget` | `k6 version` |
+| **Python 3.10+** | de la [python.org](https://www.python.org/) | `python --version` |
+| Pachete Python | `pip install numpy matplotlib scipy` | — |
+| PowerShell 5+ | preinstalat pe Windows | `$PSVersionTable` |
+
+**Backend-ul trebuie să fie pornit pe `http://localhost:8081`** înainte de orice script.
+
+### 8.2. Pasul 1 — pregătirea mediului (`setup.ps1`)
+
+Scriptul înregistrează 2 utilizatori de test (`perfA_<timestamp>`, `perfB_<timestamp>`), creează un chat 1-la-1 între ei și salvează tokenii JWT + ID-urile în `perf/config.json` (fișier citit de toate scripturile k6).
+
+```powershell
+cd perf
+./setup.ps1
+⚠️ Tokenii JWT expiră în 24h. Dacă primești 401 Unauthorized la teste, rulează din nou setup.ps1.
+
+8.3. Pasul 2 — rularea testelor k6
+Fiecare script produce un fișier NDJSON cu metricile brute.
+
+Script	Ce măsoară	Praguri (RNF)	Comandă
+latency.js	Latența end-to-end WebSocket (mesaj userA → userB prin STOMP)	p50<50ms, p95<100ms, p99<150ms	k6 run --out json=runs/run01.json latency.js
+rest.js	Timpi pe endpoint-urile REST: GET /me, GET /chats, GET /chats/{id}/messages, POST /auth/login	p95<200ms (non-bcrypt), p95<1000ms (login)	k6 run --out json=runs_rest/run01.json rest.js
+scalability.js	Degradarea p95 cu numărul de VUs concurenți (rampă 10 → 200)	p95<500ms, erori<1%	k6 run --out json=scalability_results.json scalability.js
+Parametri opționali (variabile de mediu):
+
+# latency.js: numar de mesaje si cadenta
+$env:N_MESSAGES=500; $env:SEND_RATE_MS=100; k6 run --out json=runs/run01.json latency.js
+
+# rest.js: numar de iteratii
+$env:ITERATIONS=50; k6 run --out json=runs_rest/run01.json rest.js
+Rulări multiple pentru analize statistice. Scripturile Python așteaptă mai multe NDJSON-uri (run01.json, run02.json, …) și exclud prima rulare ca warm-up. Repetă comanda variind numele fișierului:
+
+for ($i=1; $i -le 10; $i++) {
+    $n = "{0:D2}" -f $i
+    k6 run --out json="runs/run$n.json" latency.js
+}
+8.4. Pasul 3 — generarea graficelor (Python)
+Toate scripturile Python se rulează din folderul perf/ și scriu PNG-uri în perf/figures/.
+
+Script	Citește din	Produce
+plot_results.py	perf/runs/run*.json (latență WS)	figures/histogram.png (latență cumulată cu medie/p95/p99) + figures/summary.png (bar chart per rulare)
+analyze_rest.py	perf/runs_rest/run*.json (REST)	grafice separate pentru citiri (GET /me, /chats, /messages) și histograma login (bcrypt) + statistici pe consolă
+plots_scalability.py	perf/scalability_results.json	curba p50/p95/p99 vs număr de VUs
+cd perf
+python plot_results.py
+python analyze_rest.py
+python plots_scalability.py
+8.5. Troubleshooting
+Eroare	Cauza	Soluție
+401 Unauthorized la k6	Tokenii din config.json au expirat (>24h)	Rulează din nou ./setup.ps1
+Connection refused	Backend-ul nu rulează	Pornește backend pe :8081
+ModuleNotFoundError: matplotlib	Pachete Python lipsă	pip install numpy matplotlib scipy
+[skip] *_results.json lipseste la scripturile Python	Nu ai rulat k6 înainte	Rulează întâi testele k6 corespunzătoare
+k6 nu este recunoscut	k6 nu e instalat	winget install k6 --source winget
+p95 peste prag în mod constant	Backend sau DB sub-dimensionat	Verifică logul Spring, indexii Postgres, dimensiunea pool-ului HikariCP
