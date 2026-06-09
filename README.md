@@ -127,27 +127,7 @@ npm run preview   # opțional, pentru a testa build-ul local
 
 ---
 
-## 7. Performanță
-
-Aplicația include câteva decizii de proiectare orientate spre performanță și scalabilitate:
-
-**Indexare în baza de date.** Tabelul `messages` are indecși compuși definiți explicit, cel mai important fiind `idx_messages_chat_not_deleted` pe `(chat_id, deleted, created_at DESC)`. Acesta acoperă exact interogarea cea mai frecventă — încărcarea mesajelor recente dintr-o conversație, ordonate descrescător — fără a parcurge întregul tabel. Există indecși suplimentari pe `sender_id`, `created_at`, `updated_at` și `attachment_url`.
-
-**Paginare.** Mesajele nu se încarcă toate odată. Repository-ul folosește `Pageable`, iar istoricul unei conversații se aduce pe pagini (`findByChatIdAndDeletedFalseOrderByCreatedAtDesc`). Astfel timpul de răspuns rămâne constant indiferent de câte mii de mesaje are conversația.
-
-**Încărcare lazy a relațiilor.** Relațiile JPA (`@ManyToOne`) sunt configurate cu `FetchType.LAZY`, ca să nu se aducă din DB entități asociate (expeditor, conversație) atunci când nu sunt necesare, evitând interogări inutile.
-
-**Curățare automată programată.** Trei job-uri rulează zilnic (orele 02:00, 03:00, 04:00, prin `@Scheduled`) și șterg definitiv mesajele soft-delete mai vechi de `retention-days` (implicit 30 de zile) și fișierele orfane din GCS. Acest lucru menține dimensiunea bazei de date și a bucket-ului sub control în timp.
-
-**Code-splitting pe frontend.** Build-ul Vite separă bibliotecile în chunk-uri distincte (`vendor-react`, `vendor-http`, `vendor-stomp`), astfel încât browser-ul le poate cache-ui independent și nu reîncarcă tot bundle-ul la fiecare modificare a codului aplicației.
-
-**Limite de upload.** Atașamentele sunt limitate la 20 MB per fișier (configurabil în `application.properties`), pentru a proteja serverul de cereri excesiv de mari.
-
-**Comunicare prin WebSocket.** Mesajele și prezența folosesc un canal WebSocket persistent (STOMP) în loc de polling HTTP repetat, ceea ce reduce semnificativ numărul de cereri și latența pentru actualizările în timp real.
-
----
-
-## 8. Structura proiectului
+## 7. Structura proiectului
 
 ```
 Chat App/
@@ -169,12 +149,3 @@ Chat App/
 └── docs/                    # Diagrame UML (arhitectură, clase, etc.)
 ```
 
----
-
-## 9. Probleme frecvente
-
-- **Login-ul cu Google nu funcționează** → verifică dacă `GOOGLE_CLIENT_ID` (backend) și `VITE_GOOGLE_CLIENT_ID` (frontend) sunt identice și dacă `http://localhost:5173` este adăugat la „Authorized JavaScript origins” în Google Cloud Console.
-- **Backend-ul nu pornește / eroare la conexiunea DB** → confirmă că PostgreSQL rulează, că baza `chatapp` există și că `DB_USERNAME`/`DB_PASSWORD` sunt corecte.
-- **Atașamentele nu se încarcă** → verifică `GCS_CREDENTIALS_PATH`, existența bucket-ului și permisiunile service account-ului.
-- **Frontend-ul nu vede backend-ul** → asigură-te că backend-ul rulează pe portul 8081 înainte de a porni frontend-ul.
-| k6 nu e recunoscut | k6 nu e instalat | `winget install k6 --source winget` |
