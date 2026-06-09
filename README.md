@@ -1,126 +1,186 @@
-# Folder `perf/` — Teste de performanta (capitolul 5)
+# Aviel — Aplicație de chat în timp real
 
-Acest folder contine toate testele de performanta pentru aplicatia de chat,
-plus scripturile de generare a graficelor pentru lucrarea de licenta.
-
----
-
-## Structura folderului
-
-### Scripturi de setup (PowerShell)
-
-| Fisier | Rol |
-|--------|-----|
-| `setup.ps1`   | Pregateste mediul: creeaza 2 useri test + un chat intre ei. Scrie tokenii in `config.json`. Se ruleaza o singura data inainte de teste. |
-| `run-all.ps1` | Orchestrator: ruleaza pe rand cele 3 teste k6 si salveaza rezultatele JSON. |
-
-### Scripturi de testare (k6, JavaScript)
-
-| Fisier | Ce masoara | Prag |
-|--------|------------|------|
-| `latency.js`     | Latenta end-to-end WebSocket (round-trip mesaj userA -> userB) | RNF01: p95 < 100 ms |
-| `rest.js`        | Timpii pe 4 endpoint-uri REST: list_chats, list_messages, get_me, login | RNF02: p95 < 200 ms (non-bcrypt) |
-| `scalability.js` | Degradarea latentei cu cresterea numarului de useri concurenti (10 → 200) | p95 < 500 ms, erori < 1% |
-
-### Generatoare de grafice (Python)
-
-| Fisier | Input | Output |
-|--------|-------|--------|
-| `plots.py`                | `*_results.json` (NDJSON brut, milioane de puncte) | 3 PNG-uri: histograma latenta, bar chart REST, linie scalabilitate |
-
-### Configurare
-
-| Fisier | Continut |
-|--------|----------|
-| `config.json` | Generat de `setup.ps1`. Contine tokenA, tokenB, userIdA, userIdB, chatId, wsUrl. Citit de toate scripturile k6. |
-
-### Documentatie
-
-| Fisier | Rol |
-|--------|-----|
-| `README.md`        | Acest fisier — vedere de ansamblu peste folder |
-| `GHID_CAPTURI.md`  | Ghid pas-cu-pas pentru capturile de ecran din capitolul 5 |
+Aplicație web de mesagerie în timp real: conversații 1-la-1 și de grup, atașamente, status de prezență (online/offline), confirmări de livrare/citire și căutare în mesaje. Backend pe Spring Boot, frontend pe React.
 
 ---
 
-## Fisierele JSON cu rezultate (explicate aici fiindca JSON nu suporta comentarii)
+## 1. Tehnologii
 
-### `latency_results.json` / `rest_results.json` / `scalability_results.json`
+**Backend**
+- Java 21, Spring Boot 3.3.4, Maven
+- Spring Web (REST), Spring Security, Spring Data JPA (Hibernate)
+- WebSocket (STOMP) pentru mesaje în timp real și prezență
+- PostgreSQL
+- Autentificare cu JWT și Google OAuth (Google Identity Services)
+- Google Cloud Storage (GCS) pentru stocarea atașamentelor
 
-**Format:** NDJSON line-delimited (cate un obiect JSON per linie, NU un array).
-**Generate de:** `k6 run --out json=<nume>_results.json <script>.js`
+**Frontend**
+- React + Vite
+- axios (HTTP), STOMP/SockJS (WebSocket)
+- Google Identity Services pentru login cu Google
 
-Fiecare linie este un eveniment de tipul:
-```json
-{"type": "Point", "metric": "e2e_latency_ms", "data": {"value": 23.5, "time": "..."}}
+---
+
+## 2. Cerințe preliminare
+
+Înainte de a rula aplicația, trebuie instalate:
+
+- **JDK 21** (`java -version` trebuie să afișeze versiunea 21)
+- **Maven 3.9+** (sau folosești wrapper-ul `mvnw` din proiect)
+- **Node.js 18+** și **npm**
+- **PostgreSQL 14+** pornit local
+- Un **proiect Google Cloud** cu:
+  - un **OAuth Client ID** (tip „Web application”) pentru login,
+  - un **bucket GCS** și un fișier de **credențiale de service account** (`gcs-credentials.json`) pentru atașamente.
+
+---
+
+## 3. Configurarea bazei de date
+
+Creează baza de date în PostgreSQL:
+
+```sql
+CREATE DATABASE chatapp;
 ```
 
-Tipuri de inregistrari intalnite:
-- `Metric` — declaratia unei metrici (apare o data la inceput)
-- `Point`  — o masuratoare individuala (apar milioane)
-
-**Atentie:** NU adauga comentarii sau campuri custom in aceste fisiere — ar
-strica parser-ul din `plots.py`. Daca vrei sa documentezi rezultatele, fa-o
-intr-un `.md` separat.
-
-### `latency_summary.json` / `rest_summary.json` / `scalability_summary.json`
-
-**Format:** JSON standard (un singur obiect cu agregate).
-**Generate de:** `k6 run --summary-export <nume>_summary.json ...`
-
-Contin structura:
-```json
-{
-  "metrics": {
-    "e2e_latency_ms": {
-      "min": 12, "max": 87, "med": 22, "avg": 24.3,
-      "p(90)": 35, "p(95)": 42, "p(99)": 60
-    },
-    "msgs_received": { "count": 500 }
-  }
-}
-```
-
-### `results.json`
-
-Un summary mai vechi, salvat in trecut. Folosit de `plots_from_summary.py` si
-`plots_distribution.py`. Acelasi format ca `latency_summary.json`.
+Schema (tabelele) se generează automat la prima pornire a backend-ului — `spring.jpa.hibernate.ddl-auto=update` creează și actualizează tabelele. Nu trebuie să rulezi manual scripturi SQL.
 
 ---
 
-## Ordinea corecta de rulare
+## 4. Configurare (variabile de mediu)
 
-```powershell
-# 1. Porneste backend + Postgres
+> **Important — securitate.** Fișierul `application.properties` conține valori implicite pentru parolă, secret JWT și credențiale Google. Acestea sunt doar pentru dezvoltare locală. **Nu le folosi în producție și nu le urca pe un repo public.** Suprascrie-le prin variabile de mediu (toate cheile suportă deja sintaxa `${VAR:default}`).
+
+| Variabilă | Descriere | Valoare implicită |
+|---|---|---|
+| `DB_URL` | URL-ul bazei PostgreSQL | `jdbc:postgresql://localhost:5432/chatapp` |
+| `DB_USERNAME` | Utilizator DB | `postgres` |
+| `DB_PASSWORD` | Parolă DB | `1234` |
+| `JWT_SECRET` | Cheie de semnare a token-urilor JWT (string lung, secret) | *(setează-l tu)* |
+| `JWT_EXPIRATION_MS` | Durata de viață a token-ului (ms) | `86400000` (24h) |
+| `GOOGLE_CLIENT_ID` | OAuth Client ID din Google Cloud | *(setează-l tu)* |
+| `GCS_PROJECT_ID` | ID-ul proiectului Google Cloud | `chat-app-497015` |
+| `GCS_BUCKET` | Numele bucket-ului GCS | `chatapp-attachments-2026` |
+| `GCS_CREDENTIALS_PATH` | Calea către `gcs-credentials.json` | cale locală |
+| `CLEANUP_RETENTION_DAYS` | Câte zile se păstrează mesajele șterse | `30` |
+
+**Frontend** — în folderul `frontend`, fișierul `.env`:
+
+```
+VITE_GOOGLE_CLIENT_ID=acelasi_client_id_ca_la_backend
+```
+
+`GOOGLE_CLIENT_ID` (backend) și `VITE_GOOGLE_CLIENT_ID` (frontend) trebuie să fie **identice** — altfel login-ul cu Google eșuează.
+
+---
+
+## 5. Rularea aplicației
+
+Aplicația are două componente care rulează în paralel. Pornește-le în două terminale separate.
+
+### 5.1. Backend (port 8081)
+
+```bash
 cd backend
-./mvnw spring-boot:run
+./mvnw spring-boot:run        # Linux/macOS
+mvnw.cmd spring-boot:run      # Windows
+# sau, dacă ai Maven instalat global:
+mvn spring-boot:run
+```
 
-# 2. (intr-un alt terminal) Pregateste mediul
-cd perf
-./setup.ps1
+API-ul va fi disponibil la `http://localhost:8081`.
+Verifică starea cu endpoint-ul de health: `http://localhost:8081/api/health`.
 
-# 3. Ruleaza testele (pe rand sau toate odata)
-./run-all.ps1
-# sau separat:
-k6 run --out json=latency_results.json latency.js
-k6 run --out json=rest_results.json rest.js
-k6 run --out json=scalability_results.json scalability.js
+### 5.2. Frontend (port 5173)
 
-# 4. Genereaza graficele
-python plots.py
+```bash
+cd frontend
+npm install        # doar prima dată
+npm run dev
+```
 
-# 5. Vezi graficele in:
-# perf/figures/*.png
+Deschide în browser adresa afișată în terminal (de regulă `http://localhost:5173`).
+
+### 5.3. Flux de utilizare
+
+1. Deschide frontend-ul în browser.
+2. Autentifică-te cu un cont Google (butonul de login Google).
+3. Caută utilizatori și începe o conversație 1-la-1 sau creează un grup.
+4. Trimite mesaje text și atașamente (max. 20 MB/fișier). Mesajele apar în timp real prin WebSocket.
+5. Statusul de prezență și confirmările de citire se actualizează automat.
+
+---
+
+## 6. Build pentru producție
+
+**Backend** (generează un JAR executabil):
+
+```bash
+cd backend
+./mvnw clean package
+java -jar target/chatapp-backend-0.0.1-SNAPSHOT.jar
+```
+
+**Frontend** (generează fișiere statice în `frontend/dist`):
+
+```bash
+cd frontend
+npm run build
+npm run preview   # opțional, pentru a testa build-ul local
+```
+
+Conținutul din `dist` se servește apoi prin orice server static (Nginx, Vercel, etc.).
+
+---
+
+## 7. Performanță
+
+Aplicația include câteva decizii de proiectare orientate spre performanță și scalabilitate:
+
+**Indexare în baza de date.** Tabelul `messages` are indecși compuși definiți explicit, cel mai important fiind `idx_messages_chat_not_deleted` pe `(chat_id, deleted, created_at DESC)`. Acesta acoperă exact interogarea cea mai frecventă — încărcarea mesajelor recente dintr-o conversație, ordonate descrescător — fără a parcurge întregul tabel. Există indecși suplimentari pe `sender_id`, `created_at`, `updated_at` și `attachment_url`.
+
+**Paginare.** Mesajele nu se încarcă toate odată. Repository-ul folosește `Pageable`, iar istoricul unei conversații se aduce pe pagini (`findByChatIdAndDeletedFalseOrderByCreatedAtDesc`). Astfel timpul de răspuns rămâne constant indiferent de câte mii de mesaje are conversația.
+
+**Încărcare lazy a relațiilor.** Relațiile JPA (`@ManyToOne`) sunt configurate cu `FetchType.LAZY`, ca să nu se aducă din DB entități asociate (expeditor, conversație) atunci când nu sunt necesare, evitând interogări inutile.
+
+**Curățare automată programată.** Trei job-uri rulează zilnic (orele 02:00, 03:00, 04:00, prin `@Scheduled`) și șterg definitiv mesajele soft-delete mai vechi de `retention-days` (implicit 30 de zile) și fișierele orfane din GCS. Acest lucru menține dimensiunea bazei de date și a bucket-ului sub control în timp.
+
+**Code-splitting pe frontend.** Build-ul Vite separă bibliotecile în chunk-uri distincte (`vendor-react`, `vendor-http`, `vendor-stomp`), astfel încât browser-ul le poate cache-ui independent și nu reîncarcă tot bundle-ul la fiecare modificare a codului aplicației.
+
+**Limite de upload.** Atașamentele sunt limitate la 20 MB per fișier (configurabil în `application.properties`), pentru a proteja serverul de cereri excesiv de mari.
+
+**Comunicare prin WebSocket.** Mesajele și prezența folosesc un canal WebSocket persistent (STOMP) în loc de polling HTTP repetat, ceea ce reduce semnificativ numărul de cereri și latența pentru actualizările în timp real.
+
+---
+
+## 8. Structura proiectului
+
+```
+Chat App/
+├── backend/                 # Spring Boot (API REST + WebSocket)
+│   ├── src/main/java/com/chatapp/
+│   │   ├── config/          # Securitate, WebSocket, prezență
+│   │   ├── controller/      # Endpoint-uri REST și WebSocket
+│   │   ├── dto/             # Obiecte de transfer de date
+│   │   ├── entity/          # Entități JPA (User, Chat, Message, ...)
+│   │   ├── repository/      # Acces la date (Spring Data JPA)
+│   │   ├── security/        # JWT, autentificare Google
+│   │   └── service/         # Logica de business
+│   └── src/main/resources/
+│       └── application.properties
+├── frontend/                # React + Vite
+│   ├── src/                 # Cod sursă (componente, hooks)
+│   ├── index.html
+│   └── .env
+└── docs/                    # Diagrame UML (arhitectură, clase, etc.)
 ```
 
 ---
 
-## Troubleshooting rapid
+## 9. Probleme frecvente
 
-| Eroare | Cauza | Solutie |
-|--------|-------|---------|
-| `401 Unauthorized` la teste | Tokenii din `config.json` au expirat | Ruleaza din nou `./setup.ps1` |
-| `Connection refused` | Backend nu ruleaza | Porneste backend-ul pe :8081 |
-| `ModuleNotFoundError: matplotlib` | Pachete Python lipsa | `pip install matplotlib numpy scipy` |
-| `[skip] *_results.json lipseste` la plots.py | Nu ai rulat testele k6 inainte | Ruleaza intai `run-all.ps1` |
+- **Login-ul cu Google nu funcționează** → verifică dacă `GOOGLE_CLIENT_ID` (backend) și `VITE_GOOGLE_CLIENT_ID` (frontend) sunt identice și dacă `http://localhost:5173` este adăugat la „Authorized JavaScript origins” în Google Cloud Console.
+- **Backend-ul nu pornește / eroare la conexiunea DB** → confirmă că PostgreSQL rulează, că baza `chatapp` există și că `DB_USERNAME`/`DB_PASSWORD` sunt corecte.
+- **Atașamentele nu se încarcă** → verifică `GCS_CREDENTIALS_PATH`, existența bucket-ului și permisiunile service account-ului.
+- **Frontend-ul nu vede backend-ul** → asigură-te că backend-ul rulează pe portul 8081 înainte de a porni frontend-ul.
 | k6 nu e recunoscut | k6 nu e instalat | `winget install k6 --source winget` |
