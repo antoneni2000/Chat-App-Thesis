@@ -178,7 +178,7 @@ cd perf
 ./setup.ps1
 ```
 
-> ⚠️ Tokenii JWT expiră în 24h. Dacă primești `401 Unauthorized` la teste, rulează din nou `setup.ps1`.
+>  Tokenii JWT expiră în 24h. Dacă primești `401 Unauthorized` la teste, rulează din nou `setup.ps1`.
 
 ### 8.3. Pasul 2 — rularea testelor k6
 
@@ -190,14 +190,7 @@ Fiecare script produce un fișier NDJSON cu metricile brute.
 | `rest.js` | Timpi pe endpoint-urile REST: `GET /me`, `GET /chats`, `GET /chats/{id}/messages`, `POST /auth/login` | p95<200ms (non-bcrypt), p95<1000ms (login) | `k6 run --out json=runs_rest/run01.json rest.js` |
 | `scalability.js` | Degradarea p95 cu numărul de VUs concurenți (rampă 10 → 200) | p95<500ms, erori<1% | `k6 run --out json=scalability_results.json scalability.js` |
 
-**Parametri opționali** (variabile de mediu):
 
-```powershell
-# latency.js: numar de mesaje si cadenta
-$env:N_MESSAGES=500; $env:SEND_RATE_MS=100; k6 run --out json=runs/run01.json latency.js
-
-# rest.js: numar de iteratii
-$env:ITERATIONS=50; k6 run --out json=runs_rest/run01.json rest.js
 ```
 
 **Rulări multiple pentru analize statistice.** Scripturile Python așteaptă mai multe NDJSON-uri (`run01.json`, `run02.json`, …) și exclud prima rulare ca *warm-up*. Repetă comanda variind numele fișierului:
@@ -226,13 +219,4 @@ python analyze_rest.py
 python plots_scalability.py
 ```
 
-### 8.5. Troubleshooting
 
-| Eroare | Cauza | Soluție |
-|---|---|---|
-| `401 Unauthorized` la k6 | Tokenii din `config.json` au expirat (>24h) | Rulează din nou `./setup.ps1` |
-| `Connection refused` | Backend-ul nu rulează | Pornește backend pe `:8081` |
-| `ModuleNotFoundError: matplotlib` | Pachete Python lipsă | `pip install numpy matplotlib scipy` |
-| `[skip] *_results.json lipseste` la scripturile Python | Nu ai rulat k6 înainte | Rulează întâi testele k6 corespunzătoare |
-| `k6 nu este recunoscut` | k6 nu e instalat | `winget install k6 --source winget` |
-| p95 peste prag în mod constant | Backend sau DB sub-dimensionat | Verifică logul Spring, indexii Postgres, dimensiunea pool-ului HikariCP |
