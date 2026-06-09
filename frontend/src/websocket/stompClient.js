@@ -2,11 +2,11 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
 /**
- * Wrapper peste @stomp/stompjs.
- *  - connect(token) — deschide conexiunea, trimite JWT-ul în header-ul CONNECT
- *  - subscribe(destination, callback) — primește mesaje pe un topic
- *  - publish(destination, body) — trimite mesaje către server
- *  - disconnect()
+ * wrapper peste @stomp/stompjs.
+ *  connect(token) — deschide conexiunea, trimite JWT-ul în header-ul CONNECT
+ *  subscribe(destination, callback) — primește mesaje pe un topic
+ *   publish(destination, body) — trimite mesaje către server
+ *   disconnect()
  */
 
 let client = null;
@@ -21,23 +21,20 @@ export function connect(token) {
   }
 
   client = new Client({
-    // SockJS face fallback pentru browsere fără WebSocket nativ
+    // SockJS fallback pentru browsere fara WebSocket nativ
     webSocketFactory: () => new SockJS('/ws'),
     connectHeaders: {
       Authorization: `Bearer ${token}`,
     },
+    debug: (str) => console.log(str),
     reconnectDelay: 5000,
     // CRITICAL: marim frame-ul ca sa incapa atasamente base64 mari (poze/PDF-uri)
     // Default e 16KB, ne trebuie 10MB.
     maxWebSocketFrameSize: 10 * 1024 * 1024,
-    debug: (str) => console.log('[STOMP]', str), // log temporar ca sa vedem ce se intampla
   });
 
   connectedPromise = new Promise((resolve, reject) => {
-    client.onConnect = () => {
-      console.log('WebSocket conectat');
-      resolve(client);
-    };
+    client.onConnect = () => resolve(client);
     client.onStompError = (frame) => {
       console.error('STOMP error:', frame);
       reject(new Error(frame.headers?.message || 'STOMP error'));
@@ -68,7 +65,6 @@ export function publish(destination, body) {
     return;
   }
   const json = JSON.stringify(body);
-  console.log('[STOMP publish]', destination, `(${(json.length / 1024).toFixed(1)} KB)`);
   try {
     client.publish({ destination, body: json });
   } catch (err) {

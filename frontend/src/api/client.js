@@ -10,7 +10,7 @@ const client = axios.create({
 // "interceptor" = funcție care rulează ÎNAINTEA fiecărei cereri.
 // Aici atașăm automat header-ul Authorization dacă avem token salvat.
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

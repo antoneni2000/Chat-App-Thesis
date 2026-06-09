@@ -52,10 +52,15 @@ public class ChatController {
 
     /**
      * GET /api/chats/{id}/messages — istoricul de mesaje al unui chat.
+     * Parametri optionali:
+     *   ?before=<msgId>  — paginare cursor (mesaje mai vechi decat msgId)
+     *   ?limit=<n>       — cate mesaje (default 200, cap 500)
      */
     @GetMapping("/{chatId}/messages")
-    public List<MessageDto> getMessages(@PathVariable Long chatId) {
-        return chatService.getMessages(securityUtils.getCurrentUser(), chatId);
+    public List<MessageDto> getMessages(@PathVariable Long chatId,
+                                        @RequestParam(value = "before", required = false) Long before,
+                                        @RequestParam(value = "limit",  required = false, defaultValue = "200") Integer limit) {
+        return chatService.getMessages(securityUtils.getCurrentUser(), chatId, before, limit);
     }
 
     /**

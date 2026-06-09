@@ -11,11 +11,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 /**
- * Config WebSocket + STOMP.
+ * config WebSocket + STOMP.
  *
- *  - Endpoint-ul de handshake: /ws (clientul se conectează aici cu SockJS)
- *  - Destinatii server -> client (subscribe): /topic/...
- *  - Destinatii client -> server (send): /app/...
+ *  - endpoint de handshake: /ws (clientul se conecteaza aici cu SockJS)
+ *  - destinatii server -> client (subscribe): /topic/...
+ *  - destinatii client -> server (send): /app/...
  */
 @Configuration
 @EnableWebSocketMessageBroker

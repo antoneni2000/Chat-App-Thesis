@@ -3,20 +3,21 @@ package com.chatapp.controller;
 import com.chatapp.dto.UpdateProfileRequest;
 import com.chatapp.dto.UserDto;
 import com.chatapp.entity.Chat;
-import com.chatapp.entity.ChatMember;
-import com.chatapp.entity.Message;
 import com.chatapp.entity.User;
 import com.chatapp.repository.ChatMemberRepository;
 import com.chatapp.repository.ChatRepository;
 import com.chatapp.repository.MessageRepository;
 import com.chatapp.repository.UserRepository;
 import com.chatapp.security.SecurityUtils;
+import com.chatapp.service.FileStorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserRepository userRepository;
@@ -32,23 +34,38 @@ public class UserController {
     private final MessageRepository messageRepository;
     private final SecurityUtils securityUtils;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FileStorageService fileStorageService;
 
     @GetMapping("/me")
+    @Transactional(readOnly = true)
     public UserDto me() {
-        return UserDto.from(securityUtils.getCurrentUser());
+        User me = securityUtils.getCurrentUser();
+        UserDto dto = UserDto.from(me);
+        // Regenereaza URL-ul avatarului dacă e un GCS object key
+        if (dto.avatarUrl() != null && !dto.avatarUrl().startsWith("data:") && !dto.avatarUrl().startsWith("http")) {
+            return dto.withAvatarUrl(fileStorageService.freshUrlFor(dto.avatarUrl()));
+        }
+        return dto;
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public List<UserDto> listAll() {
         User me = securityUtils.getCurrentUser();
         return userRepository.findAll().stream()
                 .filter(u -> !u.getId().equals(me.getId()))
-                .map(UserDto::from)
+                .map(u -> {
+                    UserDto dto = UserDto.from(u);
+                    if (dto.avatarUrl() != null && !dto.avatarUrl().startsWith("data:") && !dto.avatarUrl().startsWith("http")) {
+                        return dto.withAvatarUrl(fileStorageService.freshUrlFor(dto.avatarUrl()));
+                    }
+                    return dto;
+                })
                 .toList();
     }
 
     /**
-     * PATCH /api/users/me — update displayName, email si/sau avatar.
+     * PATCH /api/users/me — update displayName si/sau email.
      */
     @PatchMapping("/me")
     public ResponseEntity<?> updateMe(@Valid @RequestBody UpdateProfileRequest req) {
@@ -59,21 +76,90 @@ public class UserController {
         }
 
         if (req.email() != null && !req.email().isBlank() && !req.email().equals(me.getEmail())) {
-            // verifica daca email-ul e deja folosit
             if (userRepository.existsByEmail(req.email())) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email already used by another user"));
             }
             me.setEmail(req.email().trim().toLowerCase());
         }
 
+        // avatarUrl null = nu-l atinge; blank = sterge avatarul
         if (req.avatarUrl() != null) {
-            me.setAvatarUrl(req.avatarUrl().isBlank() ? null : req.avatarUrl());
+            if (req.avatarUrl().isBlank()) {
+                deleteOldAvatar(me.getAvatarUrl());
+                me.setAvatarUrl(null);
+            }
         }
 
         me = userRepository.save(me);
         UserDto dto = UserDto.from(me);
         messagingTemplate.convertAndSend("/topic/presence", dto);
         return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * POST /api/users/me/avatar — upload avatar nou in GCS.
+     * Inlocuieste logica cu FileReader.readAsDataURL din frontend:
+     * trimite fisierul direct, primesti URL Signed inapoi.
+     */
+    @PostMapping("/me/avatar")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Only image files are allowed"));
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Avatar too large (max 5MB)"));
+        }
+
+        try {
+            User me = securityUtils.getCurrentUser();
+            // Sterge avatarul vechi din GCS (daca exista si e GCS)
+            deleteOldAvatar(me.getAvatarUrl());
+
+            // Upload nou avatar si salveaza object key in DB
+            String objectKey = fileStorageService.uploadAvatar(file);
+            me.setAvatarUrl(objectKey);
+            me = userRepository.save(me);
+
+            // Returneaza Signed URL proaspat pentru preview imediat
+            String freshUrl = fileStorageService.freshUrlFor(objectKey);
+            UserDto dto = UserDto.from(me).withAvatarUrl(freshUrl);
+            messagingTemplate.convertAndSend("/topic/presence", dto);
+            return ResponseEntity.ok(dto);
+        } catch (Exception ex) {
+            log.error("Avatar upload failed: {}", ex.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/users/me/avatar — sterge avatarul curent.
+     */
+    @DeleteMapping("/me/avatar")
+    public ResponseEntity<?> deleteAvatar() {
+        User me = securityUtils.getCurrentUser();
+        deleteOldAvatar(me.getAvatarUrl());
+        me.setAvatarUrl(null);
+        me = userRepository.save(me);
+        UserDto dto = UserDto.from(me);
+        messagingTemplate.convertAndSend("/topic/presence", dto);
+        return ResponseEntity.ok(dto);
+    }
+
+    /** Sterge un avatar vechi din GCS daca e un object key (nu URL extern / base64). */
+    private void deleteOldAvatar(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isBlank()) return;
+        if (avatarUrl.startsWith("data:")) return;   // base64 vechi — nu e in GCS
+        if (avatarUrl.startsWith("https://lh3.googleusercontent.com")) return; // Google OAuth avatar
+        try {
+            String key = avatarUrl.startsWith("http") ? fileStorageService.extractObjectNameFromUrl(avatarUrl) : avatarUrl;
+            if (key != null) fileStorageService.deleteByKey(key);
+        } catch (Exception e) {
+            log.warn("Could not delete old avatar: {}", e.getMessage());
+        }
     }
 
     /**
@@ -85,28 +171,24 @@ public class UserController {
         User me = securityUtils.getCurrentUser();
         Long myId = me.getId();
 
-        // 1. Sterge mesajele trimise de mine (FK sender_id)
+        // Sterge avatarul din GCS
+        deleteOldAvatar(me.getAvatarUrl());
+
         List<Chat> myChats = chatRepository.findVisibleChatsForUser(myId);
         for (Chat c : myChats) {
-            // sterge mesajele MELE din chaturile in care sunt
-            messageRepository.findByChatIdOrderByCreatedAtAsc(c.getId()).stream()
-                    .filter(m -> m.getSender().getId().equals(myId))
-                    .forEach(messageRepository::delete);
-        }
-        // pentru DIRECT chats: stergem complet (chat + mesajele celuilalt + membri)
-        for (Chat c : myChats) {
             if (c.getType() == Chat.ChatType.DIRECT) {
-                messageRepository.findByChatIdOrderByCreatedAtAsc(c.getId()).forEach(messageRepository::delete);
+                messageRepository.findByChatIdAndDeletedFalseOrderByCreatedAtAsc(c.getId())
+                        .forEach(messageRepository::delete);
                 chatMemberRepository.findByChatId(c.getId()).forEach(chatMemberRepository::delete);
                 chatRepository.delete(c);
+            } else {
+                messageRepository.findByChatIdAndDeletedFalseOrderByCreatedAtAsc(c.getId()).stream()
+                        .filter(m -> m.getSender().getId().equals(myId))
+                        .forEach(messageRepository::delete);
             }
         }
-        // pentru GROUP chats: doar scoatem userul din lista membrilor
-        chatMemberRepository.findAll().stream()
-                .filter(cm -> cm.getUser().getId().equals(myId))
-                .forEach(chatMemberRepository::delete);
 
-        // 2. Sterge userul
+        chatMemberRepository.deleteByUserId(myId);
         userRepository.delete(me);
 
         return Map.of("deleted", true);

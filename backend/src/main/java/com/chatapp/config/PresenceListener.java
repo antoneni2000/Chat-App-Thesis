@@ -15,7 +15,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 
 /**
- * Asculta connect/disconnect WS si actualizeaza online/lastSeen.
+ * asculta connect/disconnect WS si actualizeaza online/utlima activitate
  */
 @Component
 @RequiredArgsConstructor

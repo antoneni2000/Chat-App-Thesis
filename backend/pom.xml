@@ -82,6 +82,20 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Google API client — pentru verificarea ID Token-ului Google -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
+        <!-- Google Cloud Storage — pentru stocarea atasamentelor in bucket GCS -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.43.0</version>
+        </dependency>
+
         <!-- Lombok (auto-generates getters/setters/constructors) -->
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -26,7 +26,8 @@ public class User {
     @Column(unique = true, nullable = false, length = 255)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    // NULL pentru useri OAuth (Google) care nu au parola locala
+    @Column(name = "password_hash")
     private String passwordHash;
 
     @Column(name = "display_name", length = 100)
@@ -43,6 +44,10 @@ public class User {
 
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
+
+    // Relație one-to-one cu UserStatus
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,13 +1,13 @@
 package com.chatapp.dto;
 
 /**
- * ce trimite backend inapoi dupa registr/sigm in
- * token = JWT-ul pe care frontend-ul il va folosi in cererile urmatoare
+ * ce trimite backend inapoi dupa registr/sign in
  */
 public record AuthResponse(
     String token,
     Long userId,
     String username,
     String email,
-    String displayName
+    String displayName,
+    String avatarUrl
 ) {}

@@ -1,0 +1,99 @@
+@startuml ChatApp_ArchitectureLayers
+'==============================================================
+' Diagrama 2: Arhitectura pe niveluri (high-level)
+' Arata stratificarea controller -> service -> repository -> entity
+'==============================================================
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "Arial"
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 60
+
+hide circle
+
+top to bottom direction
+
+title Arhitectura pe niveluri (Layered Architecture)
+
+package "Prezentare (REST + WebSocket)" {
+    class "Controllers" as C {
+        + AuthController
+        + UserController
+        + ChatController
+        + ChatWebSocketController
+        + UserStatusController
+        + MessageSearchController
+        + FileController
+        + HealthController
+    }
+}
+
+package "Securitate" {
+    class "Security" as Sec {
+        + JwtUtil
+        + JwtAuthFilter
+        + CustomUserDetailsService
+        + WebSocketAuthInterceptor
+        + SecurityUtils
+    }
+}
+
+package "Logica de business" {
+    class "Services" as S {
+        + ChatService
+        + FileStorageService
+        + UserStatusService
+        + MessageSearchService
+        + MessageCleanupService
+    }
+}
+
+package "Acces la date" {
+    class "Repositories" as R {
+        + UserRepository
+        + ChatRepository
+        + ChatMemberRepository
+        + MessageRepository
+        + UserStatusRepository
+    }
+}
+
+package "Model de domeniu" {
+    class "Entities" as E {
+        + User
+        + Chat
+        + ChatMember
+        + Message
+        + UserStatus
+    }
+}
+
+package "Contracte API" {
+    class "DTOs (records)" as D {
+        + AuthResponse, RegisterRequest, LoginRequest
+        + GoogleLoginRequest, UserDto, UserStatusDto
+        + ChatDto, MessageDto, SendMessageDto
+        + CreateGroupRequest, UpdateProfileRequest
+        + SetStatusRequest, TypingIndicatorDto
+        + SearchMessagesRequest, MarkMessageReadRequest
+    }
+}
+
+class "PostgreSQL" as DB <<database>>
+class "Google Cloud Storage" as GCS <<cloud>>
+
+' Fluxul --------------------
+C ..> Sec : protejate de
+C --> S : deleaga
+C ..> D : (de)serializeaza
+S --> R : persistenta
+S ..> D : returneaza
+R --> E : JpaRepository
+E --> DB : ORM Hibernate
+S ..> GCS : avatare si atasamente
+
+@enduml

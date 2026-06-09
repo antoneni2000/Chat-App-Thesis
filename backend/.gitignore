@@ -7,3 +7,11 @@ mvnw.cmd
 HELP.md
 .DS_Store
 *.log
+
+# GCS Credentials - NEVER commit!
+gcs-credentials.json
+*.json.local
+
+# Local environment configuration
+.env
+application-local.properties

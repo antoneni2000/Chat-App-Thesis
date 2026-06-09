@@ -9,8 +9,28 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
+  build: {
+    // Genereaza source maps separate — utile pentru debugging in prod
+    // fara a creste dimensiunea bundle-ului principal.
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        // Imparte vendor-ii in chunk-uri separate ca browser-ul sa le cache-uiasca
+        // independent de codul aplicatiei. Utilizatorii care revin nu re-descarca
+        // librariile la fiecare deploy nou.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-stomp': ['@stomp/stompjs', 'sockjs-client'],
+          'vendor-http':  ['axios'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8081',

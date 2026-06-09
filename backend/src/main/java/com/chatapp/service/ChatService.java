@@ -6,6 +6,7 @@ import com.chatapp.dto.UserDto;
 import com.chatapp.entity.Chat;
 import com.chatapp.entity.ChatMember;
 import com.chatapp.entity.Message;
+import com.chatapp.entity.MessageDeliveryStatus;
 import com.chatapp.entity.User;
 import com.chatapp.repository.ChatMemberRepository;
 import com.chatapp.repository.ChatRepository;
@@ -28,6 +29,17 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FileStorageService fileStorageService;
+
+    /**
+     * Transforma o entitate Message in DTO si REGENEREAZA Signed URL-ul pentru atasament
+     * (intra-uta de fiecare data cand servim un mesaj la client — URL-uri mereu proaspete).
+     */
+    private MessageDto toDtoFreshUrl(Message m) {
+        MessageDto dto = MessageDto.from(m);
+        if (dto.attachmentUrl() == null || dto.attachmentUrl().isBlank()) return dto;
+        return dto.withAttachmentUrl(fileStorageService.freshUrlFor(dto.attachmentUrl()));
+    }
 
     /**
      * Gaseste / creeaza chat direct. NU notifica celalalt user — el va vedea chatul
@@ -150,6 +162,9 @@ public class ChatService {
             throw new IllegalArgumentException("You are not a member of this chat");
         }
 
+        // Salvam direct ca DELIVERED — serverul a primit mesajul si urmeaza sa-l
+        // distribuie. Un singur save() ca sa nu existe race intre PENDING -> DELIVERED.
+        LocalDateTime now = LocalDateTime.now();
         Message m = Message.builder()
                 .chat(chat)
                 .sender(sender)
@@ -157,9 +172,11 @@ public class ChatService {
                 .attachmentUrl(attachmentUrl)
                 .attachmentName(attachmentName)
                 .attachmentType(attachmentType)
+                .deliveryStatus(MessageDeliveryStatus.DELIVERED)
+                .deliveredAt(now)
                 .build();
         m = messageRepository.save(m);
-        MessageDto dto = MessageDto.from(m);
+        MessageDto dto = toDtoFreshUrl(m);
 
         // Broadcast-ul pe /topic/chat/{id} se face in ChatWebSocketController.
         // Aici doar trimitem update-uri user-level (sidebar) pentru fiecare membru.
@@ -186,19 +203,57 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public List<MessageDto> getMessages(User currentUser, Long chatId) {
+        return getMessages(currentUser, chatId, null, 200);
+    }
+
+    /**
+     * Cele mai recente {limit} mesaje, optional inainte de un msgId (cursor pagination).
+     * Returneaza in ordine cronologica (cel mai vechi primul) — frontend-ul nu trebuie sa inverseze.
+     */
+    @Transactional(readOnly = true)
+    public List<MessageDto> getMessages(User currentUser, Long chatId, Long beforeId, int limit) {
         if (!chatMemberRepository.existsByChatIdAndUserId(chatId, currentUser.getId())) {
-            throw new IllegalArgumentException("You are not a member of this chat");
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You are not a member of this chat");
         }
-        return messageRepository.findByChatIdOrderByCreatedAtAsc(chatId)
-                .stream().map(MessageDto::from).toList();
+
+        // capac dur ca sa nu sufoce serverul daca cineva trimite limit=99999
+        int capped = Math.min(Math.max(limit, 1), 500);
+        org.springframework.data.domain.Pageable page =
+                org.springframework.data.domain.PageRequest.of(0, capped);
+
+        List<Message> rows = (beforeId == null)
+                ? messageRepository.findRecentByChatId(chatId, page)
+                : messageRepository.findByChatIdBefore(chatId, beforeId, page);
+
+        // intoarcem in ordine crescatoare (cel mai vechi primul) ca sa fie rendable direct
+        java.util.List<Message> ordered = new java.util.ArrayList<>(rows);
+        ordered.sort(java.util.Comparator.comparing(Message::getCreatedAt));
+        return ordered.stream().map(this::toDtoFreshUrl).toList();
     }
 
     @Transactional
     public void markAsRead(User currentUser, Long chatId) {
         ChatMember cm = chatMemberRepository.findByChatIdAndUserId(chatId, currentUser.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Not a member"));
-        cm.setLastReadAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        cm.setLastReadAt(now);
         chatMemberRepository.save(cm);
+
+        // BULK UPDATE intr-un singur query (inlocuieste bucla N+1)
+        int updated = messageRepository.bulkMarkAsRead(
+                chatId, currentUser.getId(), MessageDeliveryStatus.READ, now);
+        // (nu mai e nevoie sa iteram; updated = numarul de mesaje afectate)
+
+        // Notifica chat-ul ca mesajele au fost citite -> sender-ul actualizeaza bifele.
+        // Payload: { readerId, chatId, readAt } — sender-ul filtreaza propriile mesaje
+        // create inainte de readAt si le marcheaza ca READ in UI.
+        java.util.Map<String, Object> readReceipt = new java.util.HashMap<>();
+        readReceipt.put("readerId", currentUser.getId());
+        readReceipt.put("chatId", chatId);
+        readReceipt.put("readAt", now);
+        messagingTemplate.convertAndSend("/topic/chat/" + chatId + "/read", readReceipt);
+
         // trimite update de sidebar (unreadCount va fi 0 acum)
         ChatDto cdto = toDto(cm.getChat(), currentUser);
         messagingTemplate.convertAndSend("/topic/user/" + currentUser.getId() + "/chats", cdto);
@@ -213,6 +268,7 @@ public class ChatService {
         messagingTemplate.convertAndSend("/topic/user/" + currentUser.getId() + "/chats/deleted", chatId);
     }
 
+
     private ChatDto toDto(Chat chat, User currentUser) {
         List<ChatMember> members = chatMemberRepository.findByChatId(chat.getId());
         List<UserDto> memberDtos = members.stream()
@@ -220,20 +276,19 @@ public class ChatService {
                 .toList();
 
         MessageDto lastMsg = messageRepository
-                .findFirstByChatIdOrderByCreatedAtDesc(chat.getId())
-                .map(MessageDto::from)
+                .findFirstByChatIdAndDeletedFalseOrderByCreatedAtDesc(chat.getId())
+                .map(this::toDtoFreshUrl)
                 .orElse(null);
 
-        // unread count pentru currentUser
         long unread = 0;
         ChatMember myMembership = members.stream()
                 .filter(cm -> cm.getUser().getId().equals(currentUser.getId()))
                 .findFirst().orElse(null);
         if (myMembership != null) {
             if (myMembership.getLastReadAt() == null) {
-                unread = messageRepository.countByChatIdAndSenderIdNot(chat.getId(), currentUser.getId());
+                unread = messageRepository.countByChatIdAndDeletedFalseAndSenderIdNot(chat.getId(), currentUser.getId());
             } else {
-                unread = messageRepository.countByChatIdAndCreatedAtAfterAndSenderIdNot(
+                unread = messageRepository.countByChatIdAndDeletedFalseAndCreatedAtAfterAndSenderIdNot(
                         chat.getId(), myMembership.getLastReadAt(), currentUser.getId());
             }
         }
@@ -249,3 +304,4 @@ public class ChatService {
         }
     }
 }
+
