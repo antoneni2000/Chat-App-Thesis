@@ -1,4 +1,4 @@
-# Chat App
+# AVIEL Chat App
 
 Aplicatie web de chat in timp real, cu autentificare clasica (email + parola) sau Google, conversatii 1-la-1 si de grup, atasamente (imagini/fisiere), indicatori de typing, status online/offline si confirmari de livrare/citire.
 
