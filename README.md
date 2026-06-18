@@ -23,7 +23,6 @@ Stack: **Spring Boot 3 + PostgreSQL + WebSocket (STOMP)** pe backend, **React 18
 
 ## Cerinte
 
-Inainte de a porni aplicatia, asigura-te ca ai instalate:
 
 | Tool | Versiune minima | Verificare |
 |------|----------------|------------|
@@ -33,7 +32,7 @@ Inainte de a porni aplicatia, asigura-te ca ai instalate:
 | npm | 9+ | `npm -v` |
 | PostgreSQL | 14+ | `psql --version` |
 
-Optional: un cont Google Cloud (doar daca vrei sa testezi atasamente reale).
+Optional: un cont Google Cloud (doar daca vrei sa testezi atasamente).
 
 ---
 
