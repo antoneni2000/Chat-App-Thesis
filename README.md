@@ -5,25 +5,7 @@ Aplicatie web de chat in timp real, cu autentificare clasica (email + parola) sa
 Stack: **Spring Boot 3 + PostgreSQL + WebSocket (STOMP)** pe backend, **React 18 + Vite** pe frontend, **Google Cloud Storage** pentru atasamente.
 
 ---
-
-## Functionalitati
-
-- Inregistrare si login cu email + parola (JWT)
-- Login cu cont Google (OAuth 2.0)
-- Chat 1-la-1 si chat-uri de grup
-- Mesaje in timp real prin WebSocket (STOMP peste SockJS)
-- Indicator de typing ("X scrie...")
-- Status utilizator: online / offline / busy / away
-- Confirmari de livrare si citire pentru mesaje
-- Atasamente (imagini si fisiere) stocate in Google Cloud Storage
-- Cautare in istoricul mesajelor
-- Curatare automata a mesajelor mai vechi de N zile
-
----
-
 ## Cerinte
-
-Inainte de a porni aplicatia, asigura-te ca ai instalate:
 
 | Tool | Versiune minima | Verificare |
 |------|----------------|------------|
@@ -33,7 +15,7 @@ Inainte de a porni aplicatia, asigura-te ca ai instalate:
 | npm | 9+ | `npm -v` |
 | PostgreSQL | 14+ | `psql --version` |
 
-Optional: un cont Google Cloud (doar daca vrei sa testezi atasamente reale).
+Optional: un cont Google Cloud 
 
 ---
 
@@ -45,14 +27,14 @@ Chat App/
 │   ├── src/        Cod sursa Java
 │   └── pom.xml
 ├── frontend/       Aplicatie React (Vite)
-│   ├── src/        Componente, pagini, hooks
+│   ├── src/        Componente, pagini
 │   └── package.json
 └── README.md
 ```
 
 ---
 
-## Setup pas cu pas
+## Setup 
 
 ### 1. Cloneaza repo-ul
 
@@ -119,28 +101,16 @@ Mergi la `http://localhost:5173` in browser.
 
 ---
 
-## Cum folosesti aplicatia
-
-1. **Cont nou** — apasa pe *Register*, introdu email, nume si parola. Sau apasa pe *Sign in with Google*.
-2. **Login** — dupa inregistrare esti redirectat la *Login*; intra cu credentialele tale.
-3. **Porneste un chat** — din pagina principala, cauta un utilizator dupa email/nume si incepe o conversatie.
-4. **Chat de grup** — creeaza un chat nou, da-i nume si adauga participanti.
-5. **Mesaje** — scrie in caseta de jos si apasa *Enter*. Atasamente: butonul de clip.
-6. **Status** — schimba statusul (online/busy/away) din coltul de sus.
-7. **Cautare** — foloseste bara de cautare din chat pentru a gasi mesaje mai vechi.
-
----
-
 ## Variabile de mediu
 
-Toate sunt optionale (au valori default). Recomandate in productie:
+Toate sunt optionale (au valori default).
 
 | Variabila | Default | Descriere |
 |-----------|---------|-----------|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/chatapp` | URL PostgreSQL |
 | `DB_USERNAME` | `postgres` | User DB |
 | `DB_PASSWORD` | `1234` | Parola DB |
-| `JWT_SECRET` | *(default insecure)* | Secret JWT — **schimba-l in productie** |
+| `JWT_SECRET` | *(default insecure)* | Secret JWT — **schimba-l in prod** |
 | `JWT_EXPIRATION_MS` | `86400000` (24h) | Durata token JWT |
 | `GOOGLE_CLIENT_ID` | *(test)* | Google OAuth Client ID |
 | `GCS_BUCKET` | `chatapp-attachments-2026` | Bucket GCS pentru atasamente |
@@ -165,22 +135,9 @@ npm run build
 # rezultatul e in frontend/dist/
 ```
 
----
+## Citare
 
-## Troubleshooting
+Daca folositi acest proiect intr-o lucrare academica sau alta publicatie, va rugam sa il citati astfel:
 
-| Problema | Cauza | Solutie |
-|----------|-------|---------|
-| `Connection refused` la pornirea backend-ului | PostgreSQL nu ruleaza | Porneste serviciul PostgreSQL |
-| `password authentication failed` | Parola DB diferita de default | Seteaza `DB_PASSWORD` |
-| Port 8081 ocupat | Alt proces foloseste portul | Schimba `server.port` in `application.properties` |
-| Login Google nu merge | `GOOGLE_CLIENT_ID` lipsa/gresit | Configureaza Client ID-ul tau OAuth |
-| Upload fisier esueaza | Credentiale GCS lipsa | Pune fisierul `gcs-credentials.json` sau dezactiveaza upload |
-| Frontend nu se conecteaza la backend | CORS / port gresit | Verifica ca backend-ul ruleaza pe `:8081` |
+> Nenișcă, A. (2026). *AVIEL: Aplicație de mesagerie instantanee cu arhitectură full-stack* (Lucrare de licență). Universitatea Babeș-Bolyai, Facultatea de Științe Economice și Gestiunea Afacerilor, Cluj-Napoca.
 
-
----
-
-## Licenta
-
-Proiect academic — uz personal si educational.
