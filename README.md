@@ -1,4 +1,4 @@
-# AVIEL Chat App
+# Chat App
 
 Aplicatie web de chat in timp real, cu autentificare clasica (email + parola) sau Google, conversatii 1-la-1 si de grup, atasamente (imagini/fisiere), indicatori de typing, status online/offline si confirmari de livrare/citire.
 
@@ -6,8 +6,24 @@ Stack: **Spring Boot 3 + PostgreSQL + WebSocket (STOMP)** pe backend, **React 18
 
 ---
 
+## Functionalitati
+
+- Inregistrare si login cu email + parola (JWT)
+- Login cu cont Google (OAuth 2.0)
+- Chat 1-la-1 si chat-uri de grup
+- Mesaje in timp real prin WebSocket (STOMP peste SockJS)
+- Indicator de typing ("X scrie...")
+- Status utilizator: online / offline / busy / away
+- Confirmari de livrare si citire pentru mesaje
+- Atasamente (imagini si fisiere) stocate in Google Cloud Storage
+- Cautare in istoricul mesajelor
+- Curatare automata a mesajelor mai vechi de N zile
+
+---
+
 ## Cerinte
 
+Inainte de a porni aplicatia, asigura-te ca ai instalate:
 
 | Tool | Versiune minima | Verificare |
 |------|----------------|------------|
@@ -17,7 +33,7 @@ Stack: **Spring Boot 3 + PostgreSQL + WebSocket (STOMP)** pe backend, **React 18
 | npm | 9+ | `npm -v` |
 | PostgreSQL | 14+ | `psql --version` |
 
-Optional: un cont Google Cloud (doar daca vrei sa testezi atasamente).
+Optional: un cont Google Cloud (doar daca vrei sa testezi atasamente reale).
 
 ---
 
@@ -29,7 +45,7 @@ Chat App/
 │   ├── src/        Cod sursa Java
 │   └── pom.xml
 ├── frontend/       Aplicatie React (Vite)
-│   ├── src/        Componente, pagini
+│   ├── src/        Componente, pagini, hooks
 │   └── package.json
 └── README.md
 ```
