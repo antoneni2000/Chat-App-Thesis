@@ -6,21 +6,6 @@ Stack: **Spring Boot 3 + PostgreSQL + WebSocket (STOMP)** pe backend, **React 18
 
 ---
 
-## Functionalitati
-
-- Inregistrare si login cu email + parola (JWT)
-- Login cu cont Google (OAuth 2.0)
-- Chat 1-la-1 si chat-uri de grup
-- Mesaje in timp real prin WebSocket (STOMP peste SockJS)
-- Indicator de typing ("X scrie...")
-- Status utilizator: online / offline / busy / away
-- Confirmari de livrare si citire pentru mesaje
-- Atasamente (imagini si fisiere) stocate in Google Cloud Storage
-- Cautare in istoricul mesajelor
-- Curatare automata a mesajelor mai vechi de N zile
-
----
-
 ## Cerinte
 
 
@@ -44,7 +29,7 @@ Chat App/
 │   ├── src/        Cod sursa Java
 │   └── pom.xml
 ├── frontend/       Aplicatie React (Vite)
-│   ├── src/        Componente, pagini, hooks
+│   ├── src/        Componente, pagini
 │   └── package.json
 └── README.md
 ```
