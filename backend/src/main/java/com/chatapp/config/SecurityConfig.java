@@ -14,6 +14,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import java.util.Collections;
 
 /**
  * config final sercuritate
@@ -21,6 +26,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * - tot restul = necesită JWT valid
  * - SESSIONLESS = nu retinem sesiuni pe server (totul în token)
  */
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -52,6 +59,15 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public GoogleIdTokenVerifier googleIdTokenVerifier(
+            @Value("${app.google.client-id:}") String googleClientId) {
+        return new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
     }
 
     @Bean

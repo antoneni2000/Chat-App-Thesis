@@ -33,6 +33,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     @Value("${app.google.client-id:}")
     private String googleClientId;
@@ -115,17 +116,13 @@ public class AuthController {
 
         try {
             // 1. Verifica ID Token-ul Google
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(), GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
+            GoogleIdToken idToken = googleIdTokenVerifier.verify(req.idToken());
 
-            GoogleIdToken idToken = verifier.verify(req.idToken());
             if (idToken == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "Invalid Google token"));
             }
 
-            // 2. Extrage info din payload
+            // 2. Extrage infopm  din payload
             GoogleIdToken.Payload payload = idToken.getPayload();
             String email = payload.getEmail();
             Boolean emailVerified = payload.getEmailVerified();

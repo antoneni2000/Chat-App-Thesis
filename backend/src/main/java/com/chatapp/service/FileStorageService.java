@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
  * Service pentru upload fisiere in Google Cloud Storage (GCS).
  * Genereaza Signed URLs securizate (privat, temporar, sigur).
  * - Bucket-ul trebuie sa fie PRIVAT
- * - Signed URLs expiră dupa signedUrlExpiryDays zile
  * - Doar cu semnătura validă poți accesa fișierul
  */
 @Service
@@ -36,8 +35,6 @@ public class FileStorageService {
     @Value("${app.gcs.credentials-path}")
     private String credentialsPath;
 
-    @Value("${app.gcs.signed-url-expiry-days:7}")
-    private int signedUrlExpiryDays;
 
     private Storage storage;
     private boolean enabled = false;
@@ -62,8 +59,8 @@ public class FileStorageService {
                     .build()
                     .getService();
             enabled = true;
-            log.info("GCS configured: project={}, bucket={}, signed-url-expiry={} days",
-                    projectId, bucketName, signedUrlExpiryDays);
+            log.info("GCS configured: project={}, bucket={}",
+                    projectId, bucketName);
         } catch (Exception e) {
             log.error("Failed to initialize GCS: {}", e.getMessage());
         }
