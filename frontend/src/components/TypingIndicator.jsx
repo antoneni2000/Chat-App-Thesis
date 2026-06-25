@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Indica ce persoana scrie in chat
- * Afisata sub username in loc de "ultima accesare"
+ * indica cand interlocutorul scire in chat
+ * in cazul unui grup care persoana scrie in chat
  */
 export default function TypingIndicator({ typingUsers = [] }) {
   if (!typingUsers || typingUsers.length === 0) return null;
@@ -47,5 +47,5 @@ const styles = {
   text: {
     marginLeft: 4,
   },
-  // Nota: Animation se va defini in CSS global
+
 };

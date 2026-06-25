@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 /**
  * User al aplicatiei.
- * Tabel: users
+ * Tabela: users
  */
 @Entity
 @Table(name = "users")

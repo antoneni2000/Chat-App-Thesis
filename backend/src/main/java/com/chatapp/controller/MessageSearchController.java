@@ -22,7 +22,7 @@ public class MessageSearchController {
     private final UserRepository userRepository;
 
     /**
-     * Cauta mesaje text intr-un chat specific
+     * cauta mesaje text intr-un chat specific
      */
     @GetMapping("/search")
     public ResponseEntity<List<MessageDto>> searchInChat(
@@ -33,7 +33,7 @@ public class MessageSearchController {
     }
 
     /**
-     * Cauta mesaje in TOATE chaturile utilizatorului
+     * cauta mesaje in TOATE chaturile utilizatorului
      */
     @GetMapping("/search-all")
     public ResponseEntity<List<MessageDto>> searchInAllChats(@RequestParam String query) {
@@ -46,7 +46,7 @@ public class MessageSearchController {
     }
 
     /**
-     * Marca un mesaj ca citit
+     * marcare mesaj ca citit read
      */
     @PostMapping("/{messageId}/mark-read")
     public ResponseEntity<MessageDto> markAsRead(@PathVariable Long messageId) {
@@ -55,7 +55,7 @@ public class MessageSearchController {
     }
 
     /**
-     * Marca un mesaj ca livrat
+     * mcrcare mesaj ca livrat delivered
      */
     @PostMapping("/{messageId}/mark-delivered")
     public ResponseEntity<MessageDto> markAsDelivered(@PathVariable Long messageId) {

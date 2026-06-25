@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Mesaj trimis in chat - optimizat pentru scalabilitate
+ * mesaj trimis in chat -scalabilitate
  * - content = text (NULL = mesaj sters)
  * - attachmentUrl = Signed URL la GCS (NULL = fara attachment)
  * - deleted = soft delete flag (mesajele sterse nu se sterge din DB)
@@ -16,15 +16,15 @@ import java.time.LocalDateTime;
 @Table(
     name = "messages",
     indexes = {
-        // Index principal: ce mesaje sa fie afisate in chat
+        // index principal: ce mesaje sa fie afisate in chat
         @Index(name = "idx_messages_chat_not_deleted", columnList = "chat_id, deleted, created_at DESC"),
-        // Index pentru cautare dupa sender (pentru analytics, etc)
+        // index cautare dupa sender
         @Index(name = "idx_messages_sender_id", columnList = "sender_id"),
-        // Index pentru orfan detection (pozele fara mesaj parent)
+        // Index orfan detection (pozele fara mesaj parent)
         @Index(name = "idx_messages_attachment_url", columnList = "attachment_url"),
-        // Index pentru cleanup: sterge mesaje vechi
+        // Index  cleanup: sterge mesaje vechi
         @Index(name = "idx_messages_created_at", columnList = "created_at"),
-        // Index pentru archiving
+        // Index  archiving
         @Index(name = "idx_messages_updated_at", columnList = "updated_at")
     }
 )
@@ -65,18 +65,18 @@ public class Message {
 
     /**
      * Soft delete flag - mesajul nu e sters fizic din DB, doar marcat ca sters.
-     * Beneficii:
-     * - Recuperare usoara (undo delete)
-     * - Audit trail (cine a sters cand)
-     * - Cleanup policies pot actiona pe mesaje vechi sterse
-     * - Queries filtrare: WHERE deleted = false
+     ***** Beneficii:
+     * Recup usoara (undo delete)
+     *  trail (cine a sters cand)
+     * cleanup policies pot actiona pe mesaje vechi sterse
+     * queries filtrare: WHERE deleted = false
      */
     @Column(name = "deleted", nullable = false)
     @Builder.Default
     private Boolean deleted = false;
 
     /**
-     * Status de livrare a mesajului
+     * status de livrare a mesajului
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_status", nullable = false)
@@ -84,13 +84,13 @@ public class Message {
     private MessageDeliveryStatus deliveryStatus = MessageDeliveryStatus.PENDING;
 
     /**
-     * Timestamp când mesajul a fost marcat ca delivered
+     * timestamp când mesajul a fost marcat ca delivered
      */
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
     /**
-     * Timestamp când mesajul a fost marcat ca read
+     * timestamp când mesajul a fost marcat ca read
      */
     @Column(name = "read_at")
     private LocalDateTime readAt;
@@ -108,7 +108,7 @@ public class Message {
     }
 
     /**
-     * Soft delete - markeaza mesajul ca sters fara sa-l stearga din DB.
+     * soft delete - markeaza mesajul ca sters fara sa-l stearga din DB.
      */
     public void softDelete() {
         this.deleted = true;
@@ -117,7 +117,7 @@ public class Message {
     }
 
     /**
-     * Marchez mesajul ca delivered
+     * marcheza mesajul ca delivered
      */
     public void markAsDelivered() {
         if (this.deliveryStatus == MessageDeliveryStatus.PENDING) {
@@ -127,7 +127,7 @@ public class Message {
     }
 
     /**
-     * Marchez mesajul ca read
+     * marcheazz mesajul ca read
      */
     public void markAsRead() {
         this.deliveryStatus = MessageDeliveryStatus.READ;

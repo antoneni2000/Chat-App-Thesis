@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Indicator vizual de status - bulina colorata cu tooltip
+ * indicator vizual de status
  * Colors: green (online), yellow (away), red (dnd), orange (busy), blue (custom)
  */
 export default function StatusIndicator({ status, userOnline }) {

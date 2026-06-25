@@ -6,8 +6,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Status al utilizatorului - predefinit sau custom
- * Tabel: user_status
+ * Status al utilizatorului, alegi sau iti pui tu ce vrei
+ * Tabela: user_status
  */
 @Entity
 @Table(name = "user_status")
@@ -24,17 +24,17 @@ public class UserStatus {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    // Status text: poate fi predefinit (In pauza, Medic, Nu deranjati, Intr-o sedinta) sau custom
+    // status text: poate fi predefinit (In pauza, Medic, Nu deranjati, Intr-o sedinta) sau custom
     @Column(length = 255)
     private String statusText;
 
-    // Tip de status: ONLINE, AWAY, DND (Do Not Disturb), BUSY, CUSTOM
+    // tip status: ONLINE, AWAY, DND (Do Not Disturb), BUSY, CUSTOM
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private StatusType statusType = StatusType.ONLINE;
 
-    // Timestamp când a fost setat statusul
+    // timestamp când a fost setat statusul
     @Column(name = "set_at", nullable = false)
     private LocalDateTime setAt;
 
@@ -53,14 +53,14 @@ public class UserStatus {
     }
 
     public enum StatusType {
-        ONLINE,           // În linie
-        AWAY,             // In pauza
-        DND,              // Do not disturb
-        BUSY,             // Ocupat
-        CUSTOM            // Status custom
+        ONLINE,
+        AWAY,
+        DND,
+        BUSY,
+        CUSTOM
     }
 
-    // Metoda helper pentru a obține culoarea indicatorului de status
+    // metoda helper pentru a obține culoarea indicatorului de status
     public String getStatusColor() {
         return switch (statusType) {
             case ONLINE -> "green";

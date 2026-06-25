@@ -17,12 +17,12 @@ public interface ChatMemberRepository extends JpaRepository<ChatMember, Long> {
     Optional<ChatMember> findByChatIdAndUserId(Long chatId, Long userId);
 
     /**
-     * Toate membership-urile unui user (fara findAll().filter — query directa cu index).
+     * toate membership-urile unui user (fara findAll().filter — query directa cu index).
      */
     List<ChatMember> findByUserId(Long userId);
 
     /**
-     * Sterge in masa toate apartenentele unui user (folosit la delete account).
+     * sterge in masa toate apartenentele unui user (folosit la delete account).
      */
     @Modifying
     @Transactional

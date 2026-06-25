@@ -17,8 +17,8 @@ export default function ChatPage() {
   const { user, logout, updateUser } = useAuth();
 
   const [chats, setChats] = useState([]);
-  // selectedChatId drives which chat is open; activeChat is derived so it
-  // always reflects the latest data without a separate sync effect.
+  // selectedChatId drives which chat is open
+  // activeChat is derived so it always reflects the latest data without a separate sync effect.
   const [selectedChatId, setSelectedChatId] = useState(null);
   const activeChat = useMemo(
     () => chats.find((c) => c.id === selectedChatId) ?? null,
@@ -38,15 +38,15 @@ export default function ChatPage() {
   const [presence, setPresence] = useState({});
   // mapa cu typing indicators (chatId -> [username1, username2])
   const [typingUsers, setTypingUsers] = useState({});
-  // stare personala - statusul meu (DND, Busy, etc.)
+  // stare personala  statusul meu (DND, Busy, etc.)
   const [myStatus, setMyStatus] = useState(null);
 
   const chatSubRef = useRef(null);
   const userSubRef = useRef(null);
   const userDelSubRef = useRef(null);
   const presSubRef = useRef(null);
-  // Typing-indicator debounce: send "start typing" only once per burst,
-  // then auto-send "stop typing" after 2 s of inactivity.
+  // typing-indicator debounce: send "start typing" only once per burst,
+  // trimite stop typing dupa 2 secunde de niactivitate
   const typingTimerRef = useRef(null);
   const isTypingRef = useRef(false);
 
@@ -63,7 +63,7 @@ export default function ChatPage() {
     if (!wsReady || !user?.id) return;
 
     userSubRef.current = ws.subscribe(`/topic/user/${user.id}/chats`, (newOrUpdatedChat) => {
-      // SCOATE chat-ul de oriunde ar fi si PUNE-L PRIMUL — așa se ordonează cronologic
+      // scoate chat de oriunde ar fi si pune l primul.
       setChats((prev) => {
         const filtered = prev.filter((c) => c.id !== newOrUpdatedChat.id);
         return [newOrUpdatedChat, ...filtered];
@@ -75,7 +75,7 @@ export default function ChatPage() {
       setSelectedChatId((prev) => (prev === chatId ? null : prev));
     });
 
-    // prezenta globala — orice user devine online/offline / isi schimba profilul
+    // prezenta globala, orice user devine online/offline / isi schimba profilul
     presSubRef.current = ws.subscribe('/topic/presence', (u) => {
       setPresence((prev) => ({ ...prev, [u.id]: u }));
       // si actualizeaza otherUser-ul chat-urilor (sa apara avatar nou, etc.)
@@ -84,12 +84,12 @@ export default function ChatPage() {
       ));
     });
 
-    // re-fetch chats la fiecare conectare WS — evita pierderi de evenimente.
+    // re-fetch chats la fiecare conectare WS, evita pierderi de evenimente.
     listMyChats().then((cs) => {
       setChats(cs);
     }).catch(console.error);
 
-    // Incarca status-ul meu (afisat in profil + foloseste presence pentru update-uri live)
+    // incarca status-ul meu (afisat in profil + foloseste presence pentru update-uri live)
     getMyStatus().then((s) => {
       setMyStatus(s);
       if (s && user?.id) {
@@ -120,13 +120,13 @@ export default function ChatPage() {
         const exists = prev.some((m) => m.id === newMsg.id);
         return exists ? prev.map((m) => (m.id === newMsg.id ? newMsg : m)) : [...prev, newMsg];
       });
-      // Marcheaza ca READ doar pentru mesaje primite (nu propriile) si doar daca tab-ul e vizibil.
+      // marcheaza ca READ doar pentru mesaje primite (nu propriile) si doar daca tab-ul e vizibil.
       if (newMsg.senderId !== user?.id && document.visibilityState === 'visible') {
         markChatAsRead(chatId).catch(console.error);
       }
     });
 
-    // Subscribe la receipt-uri de citire
+    // subscribe la receipt-uri de citire
     const readSubRef = ws.subscribe(`/topic/chat/${chatId}/read`, (receipt) => {
       if (!receipt || receipt.readerId === user?.id) return;
       setMessages((prev) =>
@@ -225,7 +225,7 @@ export default function ChatPage() {
     }
   }, [activeChat, draft, attachments, wsReady, user]);
 
-  // Debounced typing indicator
+  // debounced indicator typing
   const handleDraftChange = useCallback((e) => {
     const newDraft = e.target.value;
     setDraft(newDraft);
@@ -266,7 +266,7 @@ export default function ChatPage() {
     }
   }, [wsReady, activeChat, user]);
 
-  // Uploadeaza unul sau mai multe fisiere; fiecare apare ca atasament separat.
+  // uploadeaza unul sau mai multe fisiere; fiecare apare ca atasament separat.
   const handleFile = useCallback(async (input) => {
     if (!input) return;
     const files = Array.isArray(input) ? input

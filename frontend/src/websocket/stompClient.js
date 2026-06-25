@@ -3,9 +3,9 @@ import SockJS from 'sockjs-client';
 
 /**
  * wrapper peste @stomp/stompjs.
- *  connect(token) — deschide conexiunea, trimite JWT-ul în header-ul CONNECT
- *  subscribe(destination, callback) — primește mesaje pe un topic
- *   publish(destination, body) — trimite mesaje către server
+ *  connect(token)-- deschide conexiunea, trimite JWT-ul în header-ul CONNECT
+ *  subscribe(destination, callback) -- primește mesaje pe un topic
+ *   publish(destination, body) - trimite mesaje către server
  *   disconnect()
  */
 
@@ -28,8 +28,8 @@ export function connect(token) {
     },
     debug: (str) => console.log(str),
     reconnectDelay: 5000,
-    // CRITICAL: marim frame-ul ca sa incapa atasamente base64 mari (poze/PDF-uri)
-    // Default e 16KB, ne trebuie 10MB.
+    // critic ---  marim frame-ul ca sa incapa atasamente base64 mari (poze/PDF-uri)
+    // default e 16KB, ne trebuie 10MB.
     maxWebSocketFrameSize: 10 * 1024 * 1024,
   });
 

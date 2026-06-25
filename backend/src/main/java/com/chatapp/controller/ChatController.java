@@ -26,7 +26,7 @@ public class ChatController {
 
     /**
      * POST /api/chats/direct  body: { "otherUserId": 2 }
-     * Găsește sau creează un chat 1-la-1 cu un alt user.
+     * gaseste/creaza un chat 1-la-1 cu un alt user.
      */
     @PostMapping("/direct")
     public ChatDto createOrFindDirect(@RequestBody Map<String, Long> body) {
@@ -83,7 +83,7 @@ public class ChatController {
 
     /**
      * POST /api/chats/{id}/messages — trimite mesaj via REST (pentru atasamente mari).
-     * Salveaza si broadcast-eaza pe /topic/chat/{id}.
+     * Salveaza si broadcast pe /topic/chat/{id}.
      */
     @PostMapping("/{chatId}/messages")
     public MessageDto sendMessageRest(@PathVariable Long chatId, @RequestBody SendMessageDto body) {

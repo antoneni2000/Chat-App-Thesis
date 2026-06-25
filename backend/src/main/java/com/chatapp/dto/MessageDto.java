@@ -38,10 +38,7 @@ public record MessageDto(
         );
     }
 
-    /**
-     * Returneaza o copie cu attachmentUrl inlocuit (folosit ca sa pompam URL
-     * proaspat semnat din GCS in fiecare DTO trimis la client).
-     */
+
     public MessageDto withAttachmentUrl(String url) {
         return new MessageDto(
             id, chatId, senderId, senderUsername, senderDisplayName,

@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
- * Helper care îți dă userul curent (cel logat), citit din SecurityContext-ul Spring.
+ * helper care îți dă userul curent (cel logat), citit din SecurityContext-ul Spring.
  * SecurityContext-ul a fost setat de JwtAuthFilter când a decodat token-ul.
  */
 @Component

@@ -25,7 +25,7 @@ public class MessageSearchService {
     }
 
     /**
-     * Cauta mesaje text intr-un chat specific
+     * cauta mesaje text intr-un chat specific
      */
     public List<MessageDto> searchInChat(Long chatId, String query) {
         log.info("Searching in chat {} for: {}", chatId, query);
@@ -36,7 +36,7 @@ public class MessageSearchService {
     }
 
     /**
-     * Cauta mesaje in TOATE chaturile utilizatorului
+     * cauta mesaje in TOATE chaturile utilizatorului
      */
     public List<MessageDto> searchInAllMyChats(Long userId, String query) {
         log.info("Searching in all chats for user {} for: {}", userId, query);
@@ -47,7 +47,7 @@ public class MessageSearchService {
     }
 
     /**
-     * Marca mesajul ca citit
+     * marcare mesaj ca citit
      */
     @Transactional
     public MessageDto markMessageAsRead(Long messageId) {
@@ -62,7 +62,7 @@ public class MessageSearchService {
     }
 
     /**
-     * Marca mesajul ca livrat
+     * Marcare mesaj ca livrat
      */
     @Transactional
     public MessageDto markMessageAsDelivered(Long messageId) {

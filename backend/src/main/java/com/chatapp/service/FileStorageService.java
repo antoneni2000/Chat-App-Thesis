@@ -17,10 +17,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Service pentru upload fisiere in Google Cloud Storage (GCS).
- * Genereaza Signed URLs securizate (privat, temporar, sigur).
- * - Bucket-ul trebuie sa fie PRIVAT
- * - Doar cu semnătura validă poți accesa fișierul
+ * service pentru upload fisiere in Google Cloud Storage (GCS).
+ * genereaza Signed URLs securizate (privat, temporar, sigur).
+ * Bucket-ul trebuie sa fie PRIVAT
+ * doar cu o semnatura valida se poate accesa fisierul
  */
 @Service
 @Slf4j
@@ -67,15 +67,15 @@ public class FileStorageService {
     }
 
     /**
-     * Uploadeaza un fisier in GCS sub prefixul "attachments/" si returneaza object key.
+     * urca un fisier in GCS sub prefixul "attachments/" si returneaza object key.
      */
     public UploadResult upload(MultipartFile file) throws IOException {
         return uploadWithPrefix(file, "attachments");
     }
 
     /**
-     * Uploadeaza un avatar in GCS sub prefixul "avatars/" si returneaza object key.
-     * Avatarele sunt PUBLIC_READ (nu au nevoie de Signed URL — sunt imagini de profil).
+     * incarca un avatar in GCS sub prefixul "avatars/" si returneaza object key.
+     * avatarele  sunt PUBLIC_READ (nu au nevoie de Signed URL, pt ca sunt imagini de profil).
      */
     public String uploadAvatar(MultipartFile file) throws IOException {
         if (!enabled) {
@@ -113,12 +113,12 @@ public class FileStorageService {
                 .build();
         storage.create(blobInfo, file.getBytes());
         log.info("Uploaded to GCS (private): {}", objectName);
-        // Stocam in DB object key (stabil), nu Signed URL (care expira).
+        // stocam in DB object key (stabil), nu Signed URL (care expira).
         return new UploadResult(objectName, originalName, file.getContentType(), file.getSize());
     }
 
     /**
-     * Signed URL pe TERMEN SCURT (1 ora) — folosit la fiecare DTO de mesaj,
+     * signed URL pe TERMEN SCURT (1 ora) folosit la fiecare DTO de mesaj,
      * mereu proaspat, nu se stocheaza nicaieri.
      */
     public String generateShortLivedSignedUrl(String objectName) throws IOException {
@@ -155,7 +155,7 @@ public class FileStorageService {
     }
 
     /**
-     * Listeaza toate object-urile sub "attachments/" — pentru orphan detection.
+     * listeaza toate object-urile sub "attachments/" pentru orphan detection.
      */
     public java.util.List<String> listAttachmentKeys() {
         if (!enabled) return java.util.Collections.emptyList();
@@ -167,7 +167,7 @@ public class FileStorageService {
     }
 
     /**
-     * Sterge un object direct dupa key.
+     * sterge un object direct dupa key.
      */
     public void deleteByKey(String objectKey) {
         if (!enabled || objectKey == null || objectKey.isBlank()) return;
@@ -180,7 +180,7 @@ public class FileStorageService {
     }
 
     /**
-     * Backward-compat: sterge un fisier din GCS dupa URL (Signed URL veche).
+     * backward-compat: sterge un fisier din GCS dupa URL (Signed URL veche).
      */
     public void delete(String url) {
         if (!enabled || url == null) return;
@@ -196,7 +196,7 @@ public class FileStorageService {
     }
 
     /**
-     * Extrage object name din Signed URL sau public URL.
+     * wxtrage object name din Signed URL sau public URL.
      * Signed URLs sunt complexe cu query parameters, asa ca extracts din path.
      */
     public String extractObjectNameFromUrl(String url) {
@@ -205,7 +205,7 @@ public class FileStorageService {
         String prefix = "https://storage.googleapis.com/" + bucketName + "/";
         if (url.startsWith(prefix)) {
             String path = url.substring(prefix.length());
-            // Sterge query parameters (signature si alti parametri)
+            // sterge query parameters (signature si alti parametri)
             int questionMark = path.indexOf('?');
             if (questionMark > 0) {
                 return path.substring(0, questionMark);

@@ -41,7 +41,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // Interceptorul care citește JWT din frame-ul CONNECT
+        // interceptorul care citeste JWT din frame-ul CONNECT
         registration.interceptors(authInterceptor);
     }
 

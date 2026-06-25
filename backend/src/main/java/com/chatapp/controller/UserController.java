@@ -41,7 +41,7 @@ public class UserController {
     public UserDto me() {
         User me = securityUtils.getCurrentUser();
         UserDto dto = UserDto.from(me);
-        // Regenereaza URL-ul avatarului dacă e un GCS object key
+        // regenereaza URL-ul avatarului dacă e un GCS object key
         if (dto.avatarUrl() != null && !dto.avatarUrl().startsWith("data:") && !dto.avatarUrl().startsWith("http")) {
             return dto.withAvatarUrl(fileStorageService.freshUrlFor(dto.avatarUrl()));
         }
@@ -98,7 +98,7 @@ public class UserController {
 
     /**
      * POST /api/users/me/avatar — upload avatar nou in GCS.
-     * Inlocuieste logica cu FileReader.readAsDataURL din frontend:
+     * inlocuieste logica cu FileReader.readAsDataURL din frontend:
      * trimite fisierul direct, primesti URL Signed inapoi.
      */
     @PostMapping("/me/avatar")
@@ -171,7 +171,7 @@ public class UserController {
         User me = securityUtils.getCurrentUser();
         Long myId = me.getId();
 
-        // Sterge avatarul din GCS
+        // sterge avatarul din GCS
         deleteOldAvatar(me.getAvatarUrl());
 
         List<Chat> myChats = chatRepository.findVisibleChatsForUser(myId);

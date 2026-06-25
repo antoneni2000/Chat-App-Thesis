@@ -6,8 +6,8 @@ let gisInitializedForClientId = null;
 let latestCallback = null;
 
 /**
- * Buton Google Sign-In folosind Google Identity Services (GIS).
- * Userul apasa, se loghează cu Google, primim un ID Token, îl trimitem la backend.
+ * nuton Google Sign-In folosind Google Identity Services (GIS).
+ * userul apasa, se loghează cu Google, primim un ID Token, îl trimitem la backend.
  */
 export default function GoogleSignInButton({ onError }) {
   const { loginWithGoogle } = useAuth();
@@ -53,7 +53,7 @@ export default function GoogleSignInButton({ onError }) {
       }
     };
 
-    // Așteaptă să se încarce scriptul GIS (din index.html)
+    // asteatpta să se încarce scriptul GIS (din index.html)
     if (window.google?.accounts?.id) {
       init();
     } else {

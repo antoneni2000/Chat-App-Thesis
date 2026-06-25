@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
- * Intercepteaza cererile STOMP. La frame-ul CONNECT, citeste JWT-ul din header-ul
+ * intercepteaza cererile STOMP. La frame-ul CONNECT, citeste JWT-ul din header-ul
  * "Authorization: Bearer <token>" si autentif userul pentru durata sesiunii WS.
  */
 @Component

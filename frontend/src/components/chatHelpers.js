@@ -1,7 +1,4 @@
-/**
- * Utilitare comune folosite de ChatList, MessagePanel si ChatPage.
- * Functii pure — nu depind de state sau context.
- */
+
 
 export function statusColorFor(statusType) {
   switch (statusType) {

@@ -6,8 +6,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * A chat, 1-on-1 or a multi-user, group,  conversation.
- * Tabel: chats
+ * o conversatie, 1-on-1 / a multi-user adica conversatie de grup
+ * Tabela: chats
  */
 @Entity
 @Table(name = "chats")

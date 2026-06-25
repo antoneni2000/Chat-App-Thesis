@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Vite config — runs the dev server on port 5173 and proxies API + WebSocket calls
-// to the Spring Boot backend on port 8081
+// Vite config - runs the dev server on port 5173 and proxies API + WebSocket calls to the Spring Boot backend on port 8081
 export default defineConfig({
   plugins: [react()],
   // SockJS folosește variabila `global`, care nu există în browser. O mapăm pe `globalThis`.
@@ -10,13 +9,13 @@ export default defineConfig({
     global: 'globalThis',
   },
   build: {
-    // Genereaza source maps separate — utile pentru debugging in prod
-    // fara a creste dimensiunea bundle-ului principal.
+    // genereaza source maps separate --  debugging in prod fara a creste dimensiunea bundle-ului principal.
     sourcemap: true,
     rollupOptions: {
       output: {
-        // Imparte vendor-ii in chunk-uri separate ca browser-ul sa le cache-uiasca
-        // independent de codul aplicatiei. Utilizatorii care revin nu re-descarca
+        // imparte vendor-ii in chunk-uri separate ca browser-ul sa le cache-uiasca
+        // independent de codul aplicatiei
+        // utilizatorii care revin nu re-descarca
         // librariile la fiecare deploy nou.
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],

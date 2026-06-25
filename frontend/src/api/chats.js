@@ -33,7 +33,7 @@ export const sendMessage = (chatId, content, attachment) =>
 export const updateMyProfile = (data) =>
   client.patch('/users/me', data).then((r) => r.data);
 
-/** Uploadeaza un fisier imagine ca avatar (multipart/form-data). Returneaza UserDto. */
+/** uploadeaza fisier imagine ca avatar (multipart/form-data). returneaza UserDto. */
 export const uploadAvatar = (file) => {
   const formData = new FormData();
   formData.append('file', file);
@@ -42,15 +42,15 @@ export const uploadAvatar = (file) => {
   }).then((r) => r.data);
 };
 
-/** Sterge avatarul curent. */
+/** sterge avatarul curent. */
 export const deleteAvatar = () =>
   client.delete('/users/me/avatar').then((r) => r.data);
 
 export const deleteMyAccount = () =>
   client.delete('/users/me').then((r) => r.data);
 
-// Upload fisier la Google Cloud Storage prin backend
-// Returneaza { url, name, contentType, size }
+// upload fisier la Google Cloud Storage prin backend
+// returneaza { url, name, contentType, size }
 export const uploadFile = (file) => {
   const formData = new FormData();
   formData.append('file', file);
@@ -59,9 +59,9 @@ export const uploadFile = (file) => {
   }).then((r) => r.data);
 };
 
-// === Noi API calls pentru noi feature-uri ===
+// === API calls noi pentru noi feature-uri ===
 
-// Status management
+// status mg
 export const setUserStatus = (statusText, statusType) =>
   client.post('/status/set', { statusText, statusType }).then((r) => r.data);
 
@@ -71,14 +71,14 @@ export const getMyStatus = () =>
 export const getUserStatus = (userId) =>
   client.get(`/status/${userId}`).then((r) => r.data);
 
-// Message search
+// cautare mesaje
 export const searchInChat = (chatId, query) =>
   client.get('/messages/search', { params: { chatId, query } }).then((r) => r.data);
 
 export const searchInAllChats = (query) =>
   client.get('/messages/search-all', { params: { query } }).then((r) => r.data);
 
-// Message delivery status
+// status livreare mesaj
 export const markMessageAsRead = (messageId) =>
   client.post(`/messages/${messageId}/mark-read`).then((r) => r.data);
 

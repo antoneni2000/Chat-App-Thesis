@@ -3,9 +3,9 @@ import Avatar from './Avatar';
 import { formatChatTime, statusColorFor, statusLabelFor } from './chatHelpers';
 
 /**
- * Sidebar-ul cu lista de conversatii.
- * Memoizat — se re-randeaza DOAR cand chats, activeChatId sau presence se schimba,
- * nu la fiecare mesaj primit in chat-ul activ.
+ * sidebar-ul cu lista de conversatii.
+ * Memoizat se re-randeaza daot atunci cand chats, activeChatId sau presence se schimba,
+ * nu la fiecare mesaj primit in chat-ul activ
  */
 const ChatList = memo(function ChatList({
   chats,

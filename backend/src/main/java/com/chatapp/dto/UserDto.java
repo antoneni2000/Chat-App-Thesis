@@ -24,9 +24,9 @@ public record UserDto(
     }
 
     public static UserDto from(User u) {
-        // status e @OneToOne(fetch = LAZY) — daca user-ul a fost incarcat intr-o
-        // tranzactie inchisa, accesul declanseaza LazyInitializationException.
-        // Inghitim exceptia ca sa nu cada endpoint-urile care produc UserDto in afara unei tranzactii.
+        // status e @OneToOne(fetch = LAZY) daca user-ul a fost incarcat intr-o
+        // inchisa, accesul declanseaza LazyInitializationException.
+        // exceptia ca sa nu cada endpoint-urile care produc UserDto in afara unei tranzactii.
         UserStatusDto statusDto = null;
         try {
             UserStatus s = u.getStatus();

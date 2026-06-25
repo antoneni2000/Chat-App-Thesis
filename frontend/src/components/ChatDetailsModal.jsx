@@ -1,10 +1,10 @@
 import React from 'react';
 
 /**
- * Modal cu detaliile chatului / persoanei.
- * - Direct chat: avatar + nume + @username pe acelasi rand + status
- * - Grup: nume + lista membri
- * - Sectiune "Atasamente": toate fisierele trimise in conversatie
+ * modal cu detaliile chatului / persoanei.
+ * firect chat: avatar + nume + @username pe acelasi rand + status
+ * grup: nume + lista membri
+ * sectiune "Atasamente": toate fisierele trimise in conversatie
  */
 
 function statusColor(statusType) {
@@ -49,7 +49,7 @@ export default function ChatDetailsModal({ chat, messages = [], onClose }) {
   const isDirect = chat.type === 'DIRECT';
   const otherUser = chat.otherUser;
 
-  // Construim line-ul de prezenta (un singur indicator combinat)
+  // construim  prezenta (un singur indicator combinat)
   let presenceLine = null;
   if (isDirect && otherUser) {
     if (otherUser.online) {
@@ -62,7 +62,7 @@ export default function ChatDetailsModal({ chat, messages = [], onClose }) {
     }
   }
 
-  // Filtreaza mesajele cu atasament + sorteaza descrescator (cele mai noi primele)
+  // filtreaza mesajele cu atasament + sorteaza descrescator (cele mai noi primele)
   const attachments = (messages || [])
     .filter((m) => m.attachmentUrl && m.attachmentName)
     .slice()
@@ -137,7 +137,7 @@ export default function ChatDetailsModal({ chat, messages = [], onClose }) {
           </>
         )}
 
-        {/* Atasamente — comune si pt direct, si pt grup */}
+        {/* Atasamente  */}
         <div style={styles.section}>
           <div style={styles.sectionLabel}>
             Atasamente {attachments.length > 0 && <span style={styles.count}>({attachments.length})</span>}

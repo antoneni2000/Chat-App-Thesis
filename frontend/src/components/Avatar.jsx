@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 
-/** Avatar circular memoizat — nu se re-randeaza daca src/name/size nu se schimba. */
+/** avatar memorizat nu se re-randeaza daca src/name/size nu se schimba. */
 const Avatar = memo(function Avatar({ src, name, size = 40 }) {
   if (src) {
     return (

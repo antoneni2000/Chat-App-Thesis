@@ -21,7 +21,7 @@ public class UserStatusService {
     private final UserRepository userRepository;
 
     /**
-     * Seteaza statusul utilizatorului
+     * seteaza status utilizator
      */
     @Transactional
     public UserStatusDto setUserStatus(User user, String statusText, String statusTypeStr) {
@@ -49,7 +49,7 @@ public class UserStatusService {
     }
 
     /**
-     * Obține statusul utilizatorului
+     * obtine status  utilizator
      */
     public UserStatusDto getUserStatus(Long userId) {
         return statusRepository.findByUserId(userId)
@@ -58,7 +58,7 @@ public class UserStatusService {
     }
 
     /**
-     * Reseteaza statusul la ONLINE (când user-ul se deconectează)
+     * reseteaza statusul la ONLINE (când user-ul se reconectează)
      */
     @Transactional
     public void resetStatus(Long userId) {
@@ -71,7 +71,7 @@ public class UserStatusService {
     }
 
     /**
-     * Creează status default pentru user nou
+     * creeaza status default pentru user nou
      */
     @Transactional
     public UserStatus initializeUserStatus(User user) {

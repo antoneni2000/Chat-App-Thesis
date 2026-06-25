@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 /**
- * Selector pentru status predefinit sau custom
- * Statuses: In pauza, Medic, Nu deranjati, Intr-o sedinta, Online
+ * selector pentru status predefinit sau custom
  */
 export default function StatusSelector({ onStatusChange, currentStatus }) {
   const [mode, setMode] = useState('predefined'); // 'predefined' sau 'custom'

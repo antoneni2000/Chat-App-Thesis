@@ -18,7 +18,7 @@ import java.security.Principal;
 
 /**
  * WebSocket/STOMP controller.
- * Primeste mesajele si broadcast-eaza pe /topic/chat/{id}.
+ * primeste mesajele si face broaddcast pe /topic/chat/{id}.
  */
 @Controller
 @RequiredArgsConstructor
@@ -48,7 +48,7 @@ public class ChatWebSocketController {
     }
 
     /**
-     * Handle typing indicator - broadcasat pe /topic/chat/{chatId}/typing
+     * handle typing indicator - broadcast pe /topic/chat/{chatId}/typing
      */
     @MessageMapping("/chat.typing")
     public void sendTypingIndicator(@Payload TypingIndicatorDto dto, Principal principal) {
@@ -60,7 +60,7 @@ public class ChatWebSocketController {
         User user = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new IllegalStateException("User not found"));
         
-        // Broadcasat la toti care vad chatul deschis
+        // broadcasat la toti care vad chatul deschis
         messagingTemplate.convertAndSend("/topic/chat/" + dto.chatId() + "/typing", dto);
         
         log.debug("Typing indicator from user {} in chat {}", user.getId(), dto.chatId());

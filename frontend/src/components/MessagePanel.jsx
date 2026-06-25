@@ -58,8 +58,8 @@ const Attachment = memo(function Attachment({ m, mine }) {
 });
 
 /**
- * Zona principala de chat: header + lista mesaje + composer.
- * Memoizata — se re-randeaza DOAR cand messages, activeChat, draft sau attachment se schimba.
+ * zona principala de chat: header + lista mesaje + composer.
+ * Memoizata se re-randeaza DOAR cand messages, activeChat, draft sau attachment se schimba.
  * ChatList nu este afectat de sosirea unui mesaj in chat-ul activ.
  */
 const MessagePanel = memo(function MessagePanel({

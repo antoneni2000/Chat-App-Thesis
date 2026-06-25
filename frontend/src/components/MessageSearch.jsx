@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { searchInChat, searchInAllChats } from '../api/chats';
 
 /**
- * Componenta pentru cautare mesaje in conversatii
+ * componenta pentru cautare mesaje in conversatii
  */
 export default function MessageSearch({ chatId, onResults }) {
   const [query, setQuery] = useState('');
@@ -10,7 +10,7 @@ export default function MessageSearch({ chatId, onResults }) {
   const [searching, setSearching] = useState(false);
   const [searchMode, setSearchMode] = useState('current'); // 'current' sau 'all'
 
-  // Reseteaza rezultatele cand se schimba conversatia activa
+  // reseteaza rezultatele cand se schimba conversatia activa
   useEffect(() => {
     setQuery('');
     setResults([]);

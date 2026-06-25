@@ -32,8 +32,6 @@ public class FileController {
     /**
      * POST /api/files/upload  (multipart/form-data, field "file")
      * Returns: { url (= object key), name, contentType, size }
-     * IMPORTANT: campul "url" e acum object key stabil ("attachments/uuid.ext"),
-     * NU mai e Signed URL. Frontend-ul descarca via /api/files/download?key=...
      */
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
@@ -58,7 +56,7 @@ public class FileController {
 
     /**
      * GET /api/files/download?key=<objectKey>
-     * Verifica ca user-ul are dreptul (e membru intr-un chat care contine atasamentul)
+     * verifica ca user-ul are drepturi, adica e membru in chat ul care contine atasamentul
      * si raspunde cu 302 redirect catre un Signed URL proaspat (15 minute).
      * URL-ul de aici e STABIL: poate fi pus in <img src> sau <a href>, iar
      * backend-ul regenereaza link-ul GCS la fiecare cerere.
@@ -70,8 +68,7 @@ public class FileController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing key"));
         }
 
-        // Securitate: gaseste mesajele care folosesc obiectul si verifica daca user-ul
-        // e membru in chat-ul corespunzator. Daca nu, refuza accesul.
+        // securitate: gaseste mesajele care folosesc obiectul si verifica daca user-ul e membru in chat-ul corespunzator. Daca nu, refuza accesul.
         List<Message> refs = messageRepository.findByAttachmentUrlAndDeletedFalse(objectKey);
         boolean allowed = false;
         for (Message m : refs) {
