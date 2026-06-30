@@ -42,7 +42,7 @@ public class UserStatusController {
         User fresh = userRepository.findById(user.getId()).orElse(user);
         UserDto userDto = UserDto.from(fresh);
 
-        // Broadcast pe /topic/presence — frontend-ul foloseste deja acest topic pentru a urmari presenta/profilul si statusul utilizatorilor.
+        // Broadcast pe /topic/presence - frontend-ul foloseste deja acest topic pentru a urmari presenta/profilul si statusul utilizatorilor.
         messagingTemplate.convertAndSend("/topic/presence", userDto);
 
         return ResponseEntity.ok(status);

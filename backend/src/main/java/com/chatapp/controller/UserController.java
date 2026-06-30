@@ -65,7 +65,7 @@ public class UserController {
     }
 
     /**
-     * PATCH /api/users/me — update displayName si/sau email.
+     * PATCH /api/users/me - update displayName si/sau email.
      */
     @PatchMapping("/me")
     public ResponseEntity<?> updateMe(@Valid @RequestBody UpdateProfileRequest req) {
@@ -97,7 +97,7 @@ public class UserController {
     }
 
     /**
-     * POST /api/users/me/avatar — upload avatar nou in GCS.
+     * POST /api/users/me/avatar - upload avatar nou in GCS.
      * inlocuieste logica cu FileReader.readAsDataURL din frontend:
      * trimite fisierul direct, primesti URL Signed inapoi.
      */
@@ -136,7 +136,7 @@ public class UserController {
     }
 
     /**
-     * DELETE /api/users/me/avatar — sterge avatarul curent.
+     * DELETE /api/users/me/avatar - sterge avatarul curent.
      */
     @DeleteMapping("/me/avatar")
     public ResponseEntity<?> deleteAvatar() {
@@ -152,7 +152,7 @@ public class UserController {
     /** Sterge un avatar vechi din GCS daca e un object key (nu URL extern / base64). */
     private void deleteOldAvatar(String avatarUrl) {
         if (avatarUrl == null || avatarUrl.isBlank()) return;
-        if (avatarUrl.startsWith("data:")) return;   // base64 vechi — nu e in GCS
+        if (avatarUrl.startsWith("data:")) return;   // base64 vechi - nu e in GCS
         if (avatarUrl.startsWith("https://lh3.googleusercontent.com")) return; // Google OAuth avatar
         try {
             String key = avatarUrl.startsWith("http") ? fileStorageService.extractObjectNameFromUrl(avatarUrl) : avatarUrl;
@@ -163,7 +163,7 @@ public class UserController {
     }
 
     /**
-     * DELETE /api/users/me — sterge contul si toate datele asociate.
+     * DELETE /api/users/me - sterge contul si toate datele asociate.
      */
     @DeleteMapping("/me")
     @Transactional

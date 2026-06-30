@@ -34,7 +34,7 @@ public class MessageCleanupService {
     private int retentionDays;
 
     /**
-     * 02:00 zilnic — sterge HARD din DB mesajele soft-delete vechi de >retentionDays.
+     * 02:00 zilnic - sterge HARD din DB mesajele soft-delete vechi de >retentionDays.
      * atasamentele asociate au fost (sau urmeaza sa fie) sterse la orphan detection.
      */
     @Scheduled(cron = "0 0 2 * * *")
@@ -64,7 +64,7 @@ public class MessageCleanupService {
     }
 
     /**
-     * 03:00 zilnic — detecteaza fisiere din GCS care NU mai sunt referite de niciun
+     * 03:00 zilnic - detecteaza fisiere din GCS care NU mai sunt referite de niciun
      * mesaj activ si le sterge.
      * Cazul tipic: user-ul a uploadat ceva (drag&drop) dar n-a apasat Send.
      * fisierul exista in bucket dar niciun mesaj nu-l mentioneaza. acumularea costa la GCS.
@@ -76,7 +76,7 @@ public class MessageCleanupService {
 
             List<String> allKeys = fileStorageService.listAttachmentKeys();
             if (allKeys.isEmpty()) {
-                log.info("Orphan detection: bucket empty / GCS off — skip");
+                log.info("Orphan detection: bucket empty / GCS off - skip");
                 return;
             }
 
@@ -108,7 +108,7 @@ public class MessageCleanupService {
     }
 
     /**
-     * 04:00 zilnic — log stats simple despre dimensiunea DB-ului.
+     * 04:00 zilnic - log stats simple despre dimensiunea DB-ului.
      */
     @Scheduled(cron = "0 0 4 * * *")
     public void logDatabaseStats() {

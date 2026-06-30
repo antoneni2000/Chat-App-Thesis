@@ -132,7 +132,7 @@ public class ChatService {
             chatMemberRepository.save(cm);
         }
 
-        // notifica toti membrii — apare in sidebar
+        // notifica toti membrii - apare in sidebar
         Chat finalChat = chat;
         uniqueIds.forEach(uid -> {
             User u = userRepository.findById(uid).orElse(null);

@@ -35,7 +35,7 @@ public class ChatController {
     }
 
     /**
-     * POST /api/chats/groups — creeaza un grup nou.
+     * POST /api/chats/groups - creeaza un grup nou.
      */
     @PostMapping("/groups")
     public ChatDto createGroup(@Valid @RequestBody CreateGroupRequest req) {
@@ -43,7 +43,7 @@ public class ChatController {
     }
 
     /**
-     * GET /api/chats — toate chat-urile mele.
+     * GET /api/chats - toate chat-urile mele.
      */
     @GetMapping
     public List<ChatDto> listMyChats() {
@@ -51,10 +51,10 @@ public class ChatController {
     }
 
     /**
-     * GET /api/chats/{id}/messages — istoricul de mesaje al unui chat.
+     * GET /api/chats/{id}/messages - istoricul de mesaje al unui chat.
      * Parametri optionali:
-     *   ?before=<msgId>  — paginare cursor (mesaje mai vechi decat msgId)
-     *   ?limit=<n>       — cate mesaje (default 200, cap 500)
+     *   ?before=<msgId>  - paginare cursor (mesaje mai vechi decat msgId)
+     *   ?limit=<n>       - cate mesaje (default 200, cap 500)
      */
     @GetMapping("/{chatId}/messages")
     public List<MessageDto> getMessages(@PathVariable Long chatId,
@@ -64,7 +64,7 @@ public class ChatController {
     }
 
     /**
-     * DELETE /api/chats/{id} — sterge un chat (soft-delete pentru user-ul curent).
+     * DELETE /api/chats/{id} - sterge un chat (soft-delete pentru user-ul curent).
      */
     @DeleteMapping("/{chatId}")
     public Map<String, Object> deleteChat(@PathVariable Long chatId) {
@@ -73,7 +73,7 @@ public class ChatController {
     }
 
     /**
-     * POST /api/chats/{id}/read — marcheaza chatul ca citit pana acum.
+     * POST /api/chats/{id}/read - marcheaza chatul ca citit pana acum.
      */
     @PostMapping("/{chatId}/read")
     public Map<String, Object> markAsRead(@PathVariable Long chatId) {
@@ -82,7 +82,7 @@ public class ChatController {
     }
 
     /**
-     * POST /api/chats/{id}/messages — trimite mesaj via REST (pentru atasamente mari).
+     * POST /api/chats/{id}/messages - trimite mesaj via REST (pentru atasamente mari).
      * Salveaza si broadcast pe /topic/chat/{id}.
      */
     @PostMapping("/{chatId}/messages")

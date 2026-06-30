@@ -142,7 +142,7 @@ public class FileStorageService {
         String key;
         if (stored.startsWith("http://") || stored.startsWith("https://")) {
             key = extractObjectNameFromUrl(stored);
-            if (key == null) return stored; // URL strain (ex. avatar Google) — lasa-l in pace
+            if (key == null) return stored; // URL strain (ex. avatar Google) - lasa-l in pace
         } else {
             key = stored;
         }

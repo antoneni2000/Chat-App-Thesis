@@ -613,7 +613,7 @@ function ProfileModal({ user, onClose, onSaved, onAccountDeleted, currentStatus,
     if (!confirm1) return;
     const typed = prompt('Pentru confirmare, scrie "STERGE CONT":');
     if (typed !== 'STERGE CONT') {
-      alert('Anulat — text incorect.');
+      alert('Anulat - text incorect.');
       return;
     }
     try {

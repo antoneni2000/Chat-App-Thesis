@@ -17,7 +17,7 @@ public interface ChatMemberRepository extends JpaRepository<ChatMember, Long> {
     Optional<ChatMember> findByChatIdAndUserId(Long chatId, Long userId);
 
     /**
-     * toate membership-urile unui user (fara findAll().filter — query directa cu index).
+     * toate membership-urile unui user (fara findAll().filter - query directa cu index).
      */
     List<ChatMember> findByUserId(Long userId);
 

@@ -39,7 +39,7 @@ public class AuthController {
     private String googleClientId;
 
     /**
-     * POST /api/auth/register — clasic email + parola
+     * POST /api/auth/register - clasic email + parola
      */
     private static int countMetCriteria(String password) {
         int count = 0;
@@ -81,7 +81,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/login — clasic email + parola
+     * POST /api/auth/login - clasic email + parola
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
@@ -103,7 +103,7 @@ public class AuthController {
     }
 
     /**
-     * POST /api/auth/google — login/register cu Google OAuth.
+     * POST /api/auth/google - login/register cu Google OAuth.
      * Frontend trimite ID-ul JWT primit de la Google (Google Identity Services).
      * Backend verifica semnatura, extrage email + nume + poza, creeaza/gaseste user, returneaza JWT-ul nostru.
      */
@@ -147,7 +147,7 @@ public class AuthController {
                         .email(email)
                         .displayName(name != null && !name.isBlank() ? name : username)
                         .avatarUrl(picture)
-                        // passwordHash ramane null — user OAuth, nu se poate loga cu parola
+                        // passwordHash ramane null - user OAuth, nu se poate loga cu parola
                         .build());
             });
 

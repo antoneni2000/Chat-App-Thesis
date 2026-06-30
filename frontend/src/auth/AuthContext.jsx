@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     const { data } = await client.post('/auth/login', { identifier, password });
     const cleanToken = data.token.replace(/['\"]+/g, '');
     sessionStorage.setItem('token', cleanToken);
-    // Remove the setTimeout — set user synchronously after token is stored
+    // remove the setTimeout, set user after token is stored
     setUser({ id: data.userId, username: data.username, email: data.email, displayName: data.displayName, avatarUrl: data.avatarUrl });
   };
 

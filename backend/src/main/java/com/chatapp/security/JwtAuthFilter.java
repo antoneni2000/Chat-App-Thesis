@@ -53,7 +53,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-                log.debug("JWT auth OK — user: {} | path: {}", email, path);
+                log.debug("JWT auth OK - user: {} | path: {}", email, path);
             } else {
                 log.warn("JWT isValid() = false | path: {} | token prefix: {}", path, token.substring(0, Math.min(20, token.length())));
             }
